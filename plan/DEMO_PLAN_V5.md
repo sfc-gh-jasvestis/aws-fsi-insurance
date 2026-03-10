@@ -10,7 +10,7 @@ An end-to-end insurance claims processing pipeline across **8 Asia-Pacific marke
 
 | Capability | Technology | What It Does |
 |---|---|---|
-| **Document Ingestion** | Amazon S3 + Snowpipe | Claim PDFs and adjuster notes land in S3, auto-ingested into Snowflake via Snowpipe |
+| **Document Ingestion** | Amazon S3 + Snowpipe | Claim JSON files and adjuster notes land in S3, auto-ingested into Snowflake via Snowpipe |
 | **AI Document Extraction** | Snowflake Cortex (Claude 3.5 Sonnet) | Extracts structured data (claim ID, amounts, adjuster, recommendation) from unstructured adjuster notes |
 | **Market Enrichment** | Snowflake Marketplace (World Bank) | Enriches every claim with country-level GDP, insurance penetration, and natural disaster exposure — zero ETL |
 | **AI Claim Evaluation** | Amazon Bedrock (Claude Sonnet 4.5) | Reviews claim details, policy terms, and World Bank country risk (shown in UI) to recommend Approve/Deny/Refer with reasoning — updates claim status in real time |
@@ -28,7 +28,7 @@ An end-to-end insurance claims processing pipeline across **8 Asia-Pacific marke
 │                         AWS                                 │
 │                                                             │
 │  Adjuster Notes ──► Amazon S3 ──► SQS notification          │
-│  Claim PDFs            │                                    │
+│  Claim JSON files      │                                    │
 │                        │                                    │
 │  Amazon Bedrock ◄──── Snowpark External Access (SigV4)      │
 │  (Claude Sonnet 4.5)   │                                    │
@@ -90,7 +90,7 @@ An end-to-end insurance claims processing pipeline across **8 Asia-Pacific marke
 - **Claims Adjuster** → Streamlit in Snowflake (claim evaluation + policy search)
 - **Executive / CFO** → Amazon QuickSight + Q (dashboards + natural language analytics)
 
-> *"Every day, insurers across Asia-Pacific receive thousands of claims — PDFs, adjuster notes, policy files — sitting in a queue for manual review. We're going to show you how Snowflake and AWS process a claim from a Hong Kong policyholder — from raw document to AI-powered decision in seconds."*
+> *"Every day, insurers across Asia-Pacific receive thousands of claims — JSON submissions, adjuster notes, policy files — sitting in a queue for manual review. We're going to show you how Snowflake and AWS process a claim from a Hong Kong policyholder — from raw document to AI-powered decision in seconds."*
 
 **Four AWS moments the audience sees:**
 

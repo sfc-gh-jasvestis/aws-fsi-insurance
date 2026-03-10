@@ -26,7 +26,7 @@
 ### SCENE 1 — The Problem (0:00–0:12)
 **Screen:** Streamlit app title page (Tab 1 visible)
 
-> *"Insurance claims across Asia-Pacific — Hong Kong, Singapore, Japan, Australia — thousands of documents hitting S3 every day. PDFs, adjuster notes, policy files. The traditional process? Manual review, days of back-and-forth, inconsistent decisions. What if we could go from raw document to AI-powered decision in seconds?"*
+> *"Insurance claims across Asia-Pacific — Hong Kong, Singapore, Japan, Australia — thousands of documents hitting S3 every day. JSON submissions, adjuster notes, policy files. The traditional process? Manual review, days of back-and-forth, inconsistent decisions. What if we could go from raw document to AI-powered decision in seconds?"*
 
 **Action:** Slowly scroll through the claim dropdown to show all 200 claims.
 
