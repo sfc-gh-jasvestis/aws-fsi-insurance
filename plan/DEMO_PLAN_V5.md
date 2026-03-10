@@ -1,7 +1,7 @@
 # APJ Insurance Claims & Underwriting — Reference Architecture Demo
 
-**Snowflake:** demo43 (YFB94191) | **Target:** AWS Summit Hong Kong + ASEAN reuse  
-**AWS Region:** us-west-2 | **AWS Account:** `$AWS_ACCOUNT_ID` (set `export AWS_ACCOUNT_ID=018437500440` before build)  
+**Snowflake:** `<your-snowflake-connection>` | **Target:** AWS Summit Hong Kong + ASEAN reuse  
+**AWS Region:** us-west-2 | **AWS Account:** `$AWS_ACCOUNT_ID` (set `export AWS_ACCOUNT_ID=<your-aws-account-id>` before build)  
 **AI Models:** Amazon Bedrock (Claude Sonnet 4.5) + Snowflake Cortex (Claude 3.5 Sonnet)  
 **Last updated:** March 10, 2026 (v5.5 — adjuster notes + EVALUATE_CLAIM procedure embedded in build scripts/plan; `tmp_notes/` and `create_evaluate_proc.sql` removed from repo)
 
@@ -43,7 +43,7 @@ An end-to-end insurance claims processing pipeline across **8 Asia-Pacific marke
 └──────────────────────┬──────────────────────────────────────┘
                        │ Snowpipe auto-ingest
 ┌──────────────────────▼──────────────────────────────────────┐
-│                   SNOWFLAKE (demo43)                         │
+│                   SNOWFLAKE                                    │
 │                                                              │
 │  RAW schema                                                  │
 │  ├── RAW_CUSTOMERS (50 — 8 APJ countries)                   │
@@ -153,12 +153,12 @@ An end-to-end insurance claims processing pipeline across **8 Asia-Pacific marke
 | Step | What |
 |---|---|
 | 4.1 | Cortex Search Service — 100 policy documents indexed for RAG |
-| 4.2 | `EVALUATE_CLAIM` stored procedure — Snowpark Python calls Amazon Bedrock via SigV4, writes `AI_DECISION`, `AI_REASONING`, and updates `STATUS` (APPROVE→Approved, DENY→Denied, REFER→Under Review). **Full SQL below — run via `snow sql -c demo43`** |
+| 4.2 | `EVALUATE_CLAIM` stored procedure — Snowpark Python calls Amazon Bedrock via SigV4, writes `AI_DECISION`, `AI_REASONING`, and updates `STATUS` (APPROVE→Approved, DENY→Denied, REFER→Under Review). **Full SQL below — run via `snow sql -c <your-snowflake-connection>`** |
 | 4.3 | Semantic View for Cortex Analyst — dimensions (country, city, claim type, AI decision) + metrics (amounts, counts). Available via SQL and backs the QuickSight Q topic |
 | 4.4 | Cortex Agent — orchestrates Analyst + Search with APJ-focused instructions. Available via direct SQL (not surfaced in Streamlit — NLP analytics handled by QuickSight Q) |
-| 4.5 | Streamlit app — 4-tab adjuster UI (imports: `streamlit`, `pandas`, `json`, `re`). **Tab 1:** all 200 claims in dropdown (no LIMIT), claim detail table (10 fields, `set_index("Field")`), incident caption, **World Bank Market Context expander** (GDP per Capita, Insurance Penetration, Disaster Exposure, Population, Displaced — sourced from Marketplace join), robust Bedrock JSON parsing (code-fence stripping + regex fallback), **status transition banner** ("Pending → Approved") after evaluation, no "Previous Evaluation" section. **Tab 2:** 5 KPI metrics, 4 charts (type/status/country/risk), Top Claims table (no AI_DECISION column), all numbers formatted (1 decimal %, $ with commas). **Tab 3:** Policy Search — 6 tested sample questions, `SEARCH_PREVIEW` returns 5 results with relevance badges, AI summary uses ALL hits. **Tab 4:** 3 bar charts + 2 tables, each with business context caption. All tables use `.set_index()` to hide numeric index. Format all DECIMAL values in pandas before display. Deploy with single command: `snow streamlit deploy --replace -c demo43` (reads `snowflake.yml` config) |
+| 4.5 | Streamlit app — 4-tab adjuster UI (imports: `streamlit`, `pandas`, `json`, `re`). **Tab 1:** all 200 claims in dropdown (no LIMIT), claim detail table (10 fields, `set_index("Field")`), incident caption, **World Bank Market Context expander** (GDP per Capita, Insurance Penetration, Disaster Exposure, Population, Displaced — sourced from Marketplace join), robust Bedrock JSON parsing (code-fence stripping + regex fallback), **status transition banner** ("Pending → Approved") after evaluation, no "Previous Evaluation" section. **Tab 2:** 5 KPI metrics, 4 charts (type/status/country/risk), Top Claims table (no AI_DECISION column), all numbers formatted (1 decimal %, $ with commas). **Tab 3:** Policy Search — 6 tested sample questions, `SEARCH_PREVIEW` returns 5 results with relevance badges, AI summary uses ALL hits. **Tab 4:** 3 bar charts + 2 tables, each with business context caption. All tables use `.set_index()` to hide numeric index. Format all DECIMAL values in pandas before display. Deploy with single command: `snow streamlit deploy --replace -c <your-snowflake-connection>` (reads `snowflake.yml` config) |
 
-**Step 4.2 — EVALUATE_CLAIM stored procedure (run via `snow sql -c demo43`):**
+**Step 4.2 — EVALUATE_CLAIM stored procedure (run via `snow sql -c <your-snowflake-connection>`):**
 ```sql
 CREATE OR REPLACE PROCEDURE INSURANCE_DEMO_DB.AI.EVALUATE_CLAIM(claim_id TEXT)
 RETURNS TEXT
@@ -443,7 +443,7 @@ UPDATE INSURANCE_DEMO_DB.CURATED.CLAIMS SET STATUS = CASE MOD(ABS(HASH(CLAIM_ID|
 ### Streamlit in Snowflake
 - **Automated deployment:** A `snowflake.yml` config is included in the project root. Deploy with a single command:
   ```
-  snow streamlit deploy --replace -c demo43
+  snow streamlit deploy --replace -c <your-snowflake-connection>
   ```
   This uploads the app file to the stage and creates/replaces the Streamlit object automatically. No manual copy-paste needed. To update after code changes, just re-run the same command.
 - Snowflake bundles Streamlit ~1.22 — **no `st.column_config`**, **no `hide_index=True`**, **no `st.dataframe(column_config=...)`**
@@ -490,7 +490,7 @@ UPDATE INSURANCE_DEMO_DB.CURATED.CLAIMS SET STATUS = CASE MOD(ABS(HASH(CLAIM_ID|
     --data-source-parameters '{"SnowflakeParameters":{"Host":"<ACCOUNT>.snowflakecomputing.com","Database":"INSURANCE_DEMO_DB","Warehouse":"CORTEX"}}' \
     --credentials '{"CredentialPair":{"Username":"QUICKSIGHT_USER","Password":"<password>"}}'
   ```
-  Replace `<ACCOUNT>` with Snowflake account URL prefix (e.g., `sfseapac-sg-demo43`) and `<password>` with the user's password.
+  Replace `<ACCOUNT>` with your Snowflake account URL prefix and `<password>` with the user's password.
 - STRING columns (like `CLAIM_ID`) must use `CategoricalMeasureField` with `"AggregationFunction": "COUNT"` — **not** `NumericalMeasureField`. The deploy script already handles this correctly.
 - **All datasets, analysis, dashboard, and Q topic are created by `quicksight/deploy.sh`** — a single idempotent script with full JSON definitions. The script validates all resources after creation. Never create these objects manually or with ad-hoc CLI commands.
 - **QuickSight Q topic** — 19 columns with friendly names, descriptions, and synonyms. Pre-test Q questions after deployment: "Which country has the highest total claim amount?", "Show claim count by policy type", "How many claims are pending?"
@@ -528,7 +528,7 @@ aws sqs get-queue-url --queue-name sf-insurance-demo-snowpipe --region us-west-2
 
 ### Gate 2 — After Phase 2 (Snowflake Infrastructure)
 ```sql
--- Run in Snowflake (snow sql -c demo43)
+-- Run in Snowflake (snow sql -c <your-snowflake-connection>)
 SELECT 'DB' AS check, COUNT(*) FROM INSURANCE_DEMO_DB.INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME IN ('RAW','CURATED','AI','APP')
 UNION ALL SELECT 'EAI', COUNT(*) FROM (SHOW INTEGRATIONS LIKE 'INSURANCE_BEDROCK_EAI')
 UNION ALL SELECT 'S3_INT', COUNT(*) FROM (SHOW INTEGRATIONS LIKE 'INSURANCE_S3_INTEGRATION');
@@ -625,11 +625,11 @@ SHOW STREAMLITS IN SCHEMA INSURANCE_DEMO_DB.APP;
 
 ## Pre-Build Checklist
 
-- [ ] Set environment variable: `export AWS_ACCOUNT_ID=018437500440` (or your account)
+- [ ] Set environment variable: `export AWS_ACCOUNT_ID=<your-aws-account-id>`
 - [ ] QuickSight account active (Enterprise edition)
 - [ ] Bedrock model `us.anthropic.claude-sonnet-4-5-20250929-v1:0` enabled in us-west-2
 - [ ] IAM user with `AdministratorAccess` + `AmazonBedrockFullAccess`
-- [ ] Snowflake `demo43` with `ACCOUNTADMIN` role and `CORTEX` warehouse
+- [ ] Snowflake account with `ACCOUNTADMIN` role and `CORTEX` warehouse
 - [ ] `AI_COMPLETE` (Claude 3.5 Sonnet) confirmed working in Snowflake
 - [ ] AWS access key + secret key available
 - [ ] `INSURANCE_DEMO_DB` does not exist (clean start)
@@ -645,7 +645,7 @@ SHOW STREAMLITS IN SCHEMA INSURANCE_DEMO_DB.APP;
 
 ```bash
 # Set account ID first
-export AWS_ACCOUNT_ID=018437500440
+export AWS_ACCOUNT_ID=<your-aws-account-id>
 
 # AWS — S3 (must remove all object versions first if versioning enabled)
 aws s3api list-object-versions --bucket sf-insurance-demo-apj --output json \

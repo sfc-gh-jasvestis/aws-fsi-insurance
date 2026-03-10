@@ -81,13 +81,13 @@ The full build is documented step-by-step in [`plan/DEMO_PLAN_V5.md`](plan/DEMO_
 
 ```bash
 # Set your AWS account ID before starting
-export AWS_ACCOUNT_ID=018437500440
+export AWS_ACCOUNT_ID=<your-aws-account-id>
 
 # Phase 3 — upload adjuster notes to S3
 bash scripts/adjuster_notes.sh
 
 # Phase 4 — deploy Streamlit app
-snow streamlit deploy --replace -c demo43
+snow streamlit deploy --replace -c <your-snowflake-connection>
 
 # Phase 5 — deploy QuickSight resources
 bash quicksight/deploy.sh
