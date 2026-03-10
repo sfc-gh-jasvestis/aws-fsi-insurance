@@ -1,0 +1,26 @@
+Field Inspection Report
+Claim Reference: CLM-004
+Date: 15 March 2024
+Adjuster: Tanaka Hiroshi
+Location: Japan (Yokohama City, Kanagawa Prefecture)
+
+Property Details:
+Commercial building - 4-story office complex
+Address: 2-1-5 Minato Mirai, Nishi-ku, Yokohama
+Construction: Steel frame with glass curtain wall
+Year Built: 2015
+
+Damage Assessment:
+Extensive water damage observed on floors 2 and 3 following the rupture of a main water supply line in the ceiling void of the 3rd floor. The burst pipe occurred during non-business hours, resulting in approximately 8 hours of continuous water flow before discovery. Affected areas include: suspended ceiling systems (approximately 400 sq meters), electrical conduits, IT infrastructure, carpeting, and drywall partitions. Visible mold growth already present in several wall cavities. Water has penetrated through multiple layers of drywall and insulation. Desktop computers, workstations, and office furniture on both floors have sustained significant water damage. Building's electrical system shows signs of water ingress in junction boxes and conduits. Professional moisture readings indicate elevated levels in structural elements requiring immediate drying intervention to prevent secondary damage.
+
+Estimated Repair Cost: USD 285,000
+- Water damage restoration: $95,000
+- Electrical system repairs: $45,000
+- Interior finishes replacement: $75,000
+- Equipment/furniture replacement: $70,000
+
+Claimant Cooperation: Excellent
+Property manager provided immediate access, all requested documentation, and maintenance records promptly.
+
+Recommendation: APPROVE
+Cause of loss clearly accidental and covered under policy terms. No evidence of maintenance negligence. Immediate remediation necessary to prevent further damage and business interruption. Recommend expedited claim processing to minimize business impact.
