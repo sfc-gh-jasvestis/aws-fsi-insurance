@@ -2,7 +2,7 @@
 
 **Format:** Screen recording with voiceover  
 **Duration:** 2:00  
-**Two personas:** Claims Adjuster (Snowflake Streamlit) + Executive (AWS QuickSight)
+**Two personas:** Claims Adjuster (Snowflake Streamlit) + Executive (AWS QuickSight - Q)
 
 ---
 
@@ -12,7 +12,7 @@
 |---|---|---|
 | **Amazon S3** | Every insurer already stores documents in S3. We don't ask them to move data — we meet them where they are | Snowflake integrates natively with existing AWS infrastructure |
 | **Amazon Bedrock (Claude Sonnet 4.5)** | Enterprise-grade AI with no model hosting, no GPU management, no fine-tuning. Called directly from a Snowflake stored procedure via SigV4 — the data never leaves the governed pipeline | AI inference at enterprise scale without operational overhead |
-| **Amazon QuickSight + Q** | The BI tool already in their AWS console. Dashboards for static KPIs, **Q for natural language** — executives ask questions in plain English, get auto-generated visualisations from live Snowflake data. No SQL, no report requests | Executive self-service analytics powered by Snowflake |
+| **Amazon QuickSight** | The BI tool already in their AWS console. Dashboards for static KPIs, **Amazon Q for natural language** — executives ask questions in plain English, get auto-generated visualisations from live Snowflake data. No SQL, no report requests | Executive self-service analytics powered by Snowflake |
 | **Snowflake Cortex Search** | Semantic RAG over 100 policy documents — adjusters search coverage terms, exclusions, and deductibles in plain English. Powered by Arctic embeddings, runs inside Snowflake with zero data egress | Unstructured document intelligence without external vector DBs |
 | **Snowflake Cortex AI_COMPLETE** | Built-in AI functions — no external API, no credentials, no latency. One SQL call extracts structured data from adjuster notes and generates AI summaries | AI that lives where the data lives |
 | **Streamlit in Snowflake** | A full production app running inside Snowflake — no separate hosting, no auth layer, no data egress. The adjuster's daily tool, built in Python, deployed in seconds | From prototype to production in one platform |
