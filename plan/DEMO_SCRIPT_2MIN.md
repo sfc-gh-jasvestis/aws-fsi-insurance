@@ -2,7 +2,7 @@
 
 **Format:** Screen recording with voiceover  
 **Duration:** 2:00  
-**Two personas:** Claims Adjuster (Streamlit) + Executive (QuickSight Q)
+**Two personas:** Claims Adjuster (Snowflake Streamlit) + Executive (AWS QuickSight)
 
 ---
 
