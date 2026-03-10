@@ -1,0 +1,16 @@
+definition_version: 2
+
+entities:
+  insurance_claims_app:
+    type: streamlit
+    identifier:
+      name: INSURANCE_CLAIMS_APP
+      schema: APP
+      database: INSURANCE_DEMO_DB
+    title: "APJ Insurance Claims AI"
+    comment: "AWS Summit HK — Bedrock + Cortex + QuickSight"
+    query_warehouse: CORTEX
+    main_file: streamlit_app_v5.py
+    stage: INSURANCE_DEMO_DB.APP.STREAMLIT_STAGE
+    artifacts:
+      - streamlit_app_v5.py
