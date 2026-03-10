@@ -3,7 +3,7 @@
 **Snowflake:** demo43 (YFB94191) | **Target:** AWS Summit Hong Kong + ASEAN reuse  
 **AWS Region:** us-west-2 | **AWS Account:** `$AWS_ACCOUNT_ID` (set `export AWS_ACCOUNT_ID=018437500440` before build)  
 **AI Models:** Amazon Bedrock (Claude Sonnet 4.5) + Snowflake Cortex (Claude 3.5 Sonnet)  
-**Last updated:** March 10, 2026 (v5.4 — QuickSight full JSON definitions in `quicksight/deploy.sh`, validation checkpoints per phase, post-build smoke test)
+**Last updated:** March 10, 2026 (v5.5 — adjuster notes + EVALUATE_CLAIM procedure embedded in build scripts/plan; `tmp_notes/` and `create_evaluate_proc.sql` removed from repo)
 
 ---
 
@@ -82,7 +82,7 @@ An end-to-end insurance claims processing pipeline across **8 Asia-Pacific marke
 | Customers | 50 | AI-generated (Claude 3.5 Sonnet) | Country-appropriate names and addresses across 8 APJ markets. **Names must match country** (see Build Notes) |
 | Policies | 100 | AI-generated | Auto, Home, Life, Health, Travel, Commercial — APJ terms |
 | Claims | 200 | AI-generated | APJ-relevant incidents: typhoons, monsoons, earthquakes, traffic in Asian cities. **Claim types must align with policy types** (see Build Notes) |
-| Adjuster Notes | 10 | Generated + uploaded to S3 | Field reports with inspection details, damage assessment, recommendations |
+| Adjuster Notes | 10 | Embedded in `scripts/adjuster_notes.sh` → uploaded to S3 at build time | Field reports with inspection details, damage assessment, recommendations |
 | Country Risk | 8 | Snowflake Marketplace (World Bank) | GDP per capita, insurance penetration, natural disaster exposure, population |
 
 **All AI generation and extraction uses Anthropic Claude** — Bedrock for claim evaluation, Cortex for everything else.
@@ -142,7 +142,7 @@ An end-to-end insurance claims processing pipeline across **8 Asia-Pacific marke
 | 3.1 | Generate 50 APJ customers via `AI_COMPLETE` (Claude 3.5 Sonnet) — 5 batches of 10 |
 | 3.2 | Generate 100 policies — 10 batches of 10 |
 | 3.3 | Generate 200 APJ claims — 20 batches of 10, with country-specific incident descriptions. **Claim types MUST align with policy types** (see mapping in Build Notes). Prompt must enforce valid combinations |
-| 3.4 | Generate 10 adjuster note text files, upload to S3 `adjuster-notes/` |
+| 3.4 | Upload 10 adjuster notes to S3: **`bash scripts/adjuster_notes.sh`** (notes are embedded in the script — no external files needed) |
 | 3.5 | Extract structured data from adjuster notes using `AI_COMPLETE` (Claude 3.5 Sonnet) — reads file content from stage, returns JSON |
 | 3.6 | Create Marketplace enrichment views (World Bank → APAC indicators + country risk) and **materialize into local tables** |
 | 3.7 | Build denormalized `CURATED.CLAIMS` table — joins claims + customers + policies + country risk |
@@ -153,10 +153,106 @@ An end-to-end insurance claims processing pipeline across **8 Asia-Pacific marke
 | Step | What |
 |---|---|
 | 4.1 | Cortex Search Service — 100 policy documents indexed for RAG |
-| 4.2 | `EVALUATE_CLAIM` stored procedure — Snowpark Python calls Amazon Bedrock via SigV4, writes `AI_DECISION`, `AI_REASONING`, and updates `STATUS` (APPROVE→Approved, DENY→Denied, REFER→Under Review) |
+| 4.2 | `EVALUATE_CLAIM` stored procedure — Snowpark Python calls Amazon Bedrock via SigV4, writes `AI_DECISION`, `AI_REASONING`, and updates `STATUS` (APPROVE→Approved, DENY→Denied, REFER→Under Review). **Full SQL below — run via `snow sql -c demo43`** |
 | 4.3 | Semantic View for Cortex Analyst — dimensions (country, city, claim type, AI decision) + metrics (amounts, counts). Available via SQL and backs the QuickSight Q topic |
 | 4.4 | Cortex Agent — orchestrates Analyst + Search with APJ-focused instructions. Available via direct SQL (not surfaced in Streamlit — NLP analytics handled by QuickSight Q) |
 | 4.5 | Streamlit app — 4-tab adjuster UI (imports: `streamlit`, `pandas`, `json`, `re`). **Tab 1:** all 200 claims in dropdown (no LIMIT), claim detail table (10 fields, `set_index("Field")`), incident caption, **World Bank Market Context expander** (GDP per Capita, Insurance Penetration, Disaster Exposure, Population, Displaced — sourced from Marketplace join), robust Bedrock JSON parsing (code-fence stripping + regex fallback), **status transition banner** ("Pending → Approved") after evaluation, no "Previous Evaluation" section. **Tab 2:** 5 KPI metrics, 4 charts (type/status/country/risk), Top Claims table (no AI_DECISION column), all numbers formatted (1 decimal %, $ with commas). **Tab 3:** Policy Search — 6 tested sample questions, `SEARCH_PREVIEW` returns 5 results with relevance badges, AI summary uses ALL hits. **Tab 4:** 3 bar charts + 2 tables, each with business context caption. All tables use `.set_index()` to hide numeric index. Format all DECIMAL values in pandas before display. Deploy with single command: `snow streamlit deploy --replace -c demo43` (reads `snowflake.yml` config) |
+
+**Step 4.2 — EVALUATE_CLAIM stored procedure (run via `snow sql -c demo43`):**
+```sql
+CREATE OR REPLACE PROCEDURE INSURANCE_DEMO_DB.AI.EVALUATE_CLAIM(claim_id TEXT)
+RETURNS TEXT
+LANGUAGE PYTHON
+RUNTIME_VERSION = '3.11'
+PACKAGES = ('snowflake-snowpark-python', 'boto3')
+HANDLER = 'evaluate'
+EXTERNAL_ACCESS_INTEGRATIONS = (INSURANCE_BEDROCK_EAI)
+SECRETS = ('aws_creds' = INSURANCE_DEMO_DB.AI.AWS_BEDROCK_SECRET)
+AS
+$$
+import json, re, boto3
+import _snowflake
+
+def evaluate(session, claim_id):
+    row = session.sql(f"""
+        SELECT CLAIM_ID, CLAIM_TYPE, POLICY_TYPE, CLAIM_AMOUNT, COVERAGE_LIMIT, DEDUCTIBLE,
+               DESCRIPTION, CITY, COUNTRY, FIRST_NAME, LAST_NAME, STATUS,
+               COUNTRY_GDP_PER_CAPITA, COUNTRY_INSURANCE_PENETRATION, COUNTRY_DISASTER_EXPOSURE
+        FROM INSURANCE_DEMO_DB.CURATED.CLAIMS WHERE CLAIM_ID = '{claim_id}'
+    """).collect()[0]
+
+    gdp = float(row.COUNTRY_GDP_PER_CAPITA) if row.COUNTRY_GDP_PER_CAPITA else 0
+    ins_pen = float(row.COUNTRY_INSURANCE_PENETRATION) * 100 if row.COUNTRY_INSURANCE_PENETRATION else 0
+    dis_exp = float(row.COUNTRY_DISASTER_EXPOSURE) * 100 if row.COUNTRY_DISASTER_EXPOSURE else 0
+
+    prompt = (
+        "You are an insurance claims adjuster AI for Asia-Pacific markets. "
+        "Evaluate this claim and return ONLY a JSON object.\n\n"
+        "CLAIM DETAILS:\n"
+        "- Claim ID: " + str(row.CLAIM_ID) + "\n"
+        "- Type: " + str(row.CLAIM_TYPE) + " (Policy: " + str(row.POLICY_TYPE) + ")\n"
+        "- Amount: $" + f"{row.CLAIM_AMOUNT:,.0f}" + " (Coverage: $" + f"{row.COVERAGE_LIMIT:,.0f}" + ", Deductible: $" + f"{row.DEDUCTIBLE:,.0f}" + ")\n"
+        "- Location: " + str(row.CITY) + ", " + str(row.COUNTRY) + "\n"
+        "- Claimant: " + str(row.FIRST_NAME) + " " + str(row.LAST_NAME) + "\n"
+        "- Description: " + str(row.DESCRIPTION) + "\n\n"
+        "COUNTRY RISK DATA (World Bank / Snowflake Marketplace):\n"
+        "- GDP per Capita: $" + f"{gdp:,.0f}" + "\n"
+        "- Insurance Penetration: " + f"{ins_pen:.2f}" + "%\n"
+        "- Natural Disaster Exposure: " + f"{dis_exp:.2f}" + "%\n\n"
+        "RULES:\n"
+        "1. If claim amount exceeds coverage limit, DENY\n"
+        "2. If claim type does not match policy type coverage, DENY\n"
+        "3. If claim is reasonable and within limits, APPROVE\n"
+        "4. If uncertain or needs investigation, REFER\n"
+        "5. Factor in country risk data for risk scoring\n\n"
+        "Return ONLY this JSON (no markdown, no code fences):\n"
+        '{"decision": "APPROVE|DENY|REFER", "risk_score": 1-10, "recommended_payout": number, "reasoning": "2-3 sentences"}'
+    )
+
+    ak = _snowflake.get_username_password('aws_creds').username
+    sk = _snowflake.get_username_password('aws_creds').password
+    client = boto3.client('bedrock-runtime', region_name='us-west-2',
+                          aws_access_key_id=ak, aws_secret_access_key=sk)
+
+    body = json.dumps({
+        'anthropic_version': 'bedrock-2023-05-31',
+        'max_tokens': 1024,
+        'messages': [{'role': 'user', 'content': prompt}]
+    })
+
+    resp = client.invoke_model(
+        modelId='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+        contentType='application/json',
+        body=body
+    )
+    result_text = json.loads(resp['body'].read())['content'][0]['text']
+
+    clean = result_text.strip()
+    if clean.startswith('```'):
+        clean = re.sub(r'^```(?:json)?\s*', '', clean)
+        clean = re.sub(r'\s*```$', '', clean)
+    try:
+        result_json = json.loads(clean)
+    except Exception:
+        m = re.search(r'\{.*\}', clean, re.DOTALL)
+        result_json = json.loads(m.group()) if m else {'decision': 'REFER', 'reasoning': clean, 'risk_score': 5, 'recommended_payout': 0}
+
+    decision = result_json.get('decision', 'REFER')
+    reasoning = result_json.get('reasoning', '').replace("'", "''")
+    status_map = {'APPROVE': 'Approved', 'DENY': 'Denied', 'REFER': 'Under Review'}
+    new_status = status_map.get(decision, 'Under Review')
+
+    session.sql(f"""
+        UPDATE INSURANCE_DEMO_DB.CURATED.CLAIMS
+        SET AI_DECISION = '{decision}',
+            AI_REASONING = '{reasoning}',
+            STATUS = '{new_status}'
+        WHERE CLAIM_ID = '{claim_id}'
+    """).collect()
+
+    return json.dumps(result_json)
+$$;
+```
 
 ### Phase 5 — QuickSight + Q (~15 min)
 
@@ -207,6 +303,7 @@ Sheet 2 — "APJ Risk & Markets":
 | QuickSight Analysis | `insurance-apj-analysis` | Editable analysis |
 | QuickSight Q Topic | `insurance-apj-q-topic` | NLP topic — "APJ Insurance Claims" with 19 columns, synonyms, friendly names |
 | **Deploy Script** | `quicksight/deploy.sh` | Creates datasets, analysis (11 visuals), dashboard, Q topic — single command |
+| **Build Script** | `scripts/adjuster_notes.sh` | Generates 10 adjuster notes and uploads to S3 — no external files needed |
 
 ### Snowflake Resources (`INSURANCE_DEMO_DB`)
 
@@ -540,6 +637,7 @@ SHOW STREAMLITS IN SCHEMA INSURANCE_DEMO_DB.APP;
 - [ ] QuickSight egress IPs added to Snowflake network policy
 - [ ] Previous build fully torn down (S3 bucket, IAM role, SQS queue, QuickSight resources, Snowflake DB + integrations + user)
 - [ ] `quicksight/deploy.sh` exists in project root (contains full QuickSight definitions)
+- [ ] `scripts/adjuster_notes.sh` exists (contains 10 embedded adjuster notes + S3 upload)
 
 ---
 
