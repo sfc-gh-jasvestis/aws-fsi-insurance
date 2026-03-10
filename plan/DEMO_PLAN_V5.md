@@ -1,10 +1,5 @@
 # APJ Insurance Claims & Underwriting — Reference Architecture Demo
 
-**Snowflake:** `<your-snowflake-connection>` | **Target:** AWS Summit Hong Kong + ASEAN reuse  
-**AWS Region:** us-west-2 | **AWS Account:** `$AWS_ACCOUNT_ID` (set `export AWS_ACCOUNT_ID=<your-aws-account-id>` before build)  
-**AI Models:** Amazon Bedrock (Claude Sonnet 4.5) + Snowflake Cortex (Claude 3.5 Sonnet)  
-**Last updated:** March 10, 2026 (v5.5 — adjuster notes + EVALUATE_CLAIM procedure embedded in build scripts/plan; `tmp_notes/` and `create_evaluate_proc.sql` removed from repo)
-
 ---
 
 ## What This Demo Builds
