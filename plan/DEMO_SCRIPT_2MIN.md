@@ -2,7 +2,6 @@
 
 **Format:** Screen recording with voiceover  
 **Duration:** 2:00  
-**Audience:** AWS Summit attendees, FSI prospects, partner SAs  
 **Two personas:** Claims Adjuster (Streamlit) + Executive (QuickSight Q)
 
 ---
