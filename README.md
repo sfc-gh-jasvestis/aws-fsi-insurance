@@ -2,8 +2,6 @@
 
 End-to-end insurance claims processing pipeline across **8 Asia-Pacific markets** using Snowflake and AWS — from raw document to AI-powered decision in seconds.
 
-Built for **AWS Summit Hong Kong** and ASEAN reuse.
-
 ```
 Adjuster Notes ──► Amazon S3 ──► Snowpipe ──► Snowflake
                                                   │
