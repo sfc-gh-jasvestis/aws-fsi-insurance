@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import json
 import re
+import time
 from snowflake.snowpark.context import get_active_session
 
 session = get_active_session()
@@ -10,6 +11,53 @@ st.set_page_config(page_title="APJ Insurance Claims AI", layout="wide")
 st.title("APJ Insurance Claims AI Demo")
 st.caption("AWS Summit Hong Kong — Snowflake + Amazon Bedrock + QuickSight")
 
+with st.sidebar:
+    st.markdown("### Architecture")
+    st.code("""
+┌──────────────────────┐
+│   Amazon S3 Bucket   │
+│  (Claims + Notes)    │
+└────────┬─────────────┘
+         │ Snowpipe
+         ▼
+┌──────────────────────┐
+│   Snowflake          │
+│  ┌────────────────┐  │
+│  │ RAW Schema     │  │
+│  └──────┬─────────┘  │
+│         ▼            │
+│  ┌────────────────┐  │
+│  │ CURATED Schema │◄─┼── Marketplace
+│  └──────┬─────────┘  │   (World Bank)
+│         ▼            │
+│  ┌────────────────┐  │
+│  │ AI Schema      │  │
+│  │ • Evaluate SP  │  │
+│  │ • Cortex Search│  │
+│  └──────┬─────────┘  │
+│         ▼            │
+│  ┌────────────────┐  │
+│  │ APP Schema     │  │
+│  │ • This App     │  │
+│  └────────────────┘  │
+└──────────┬───────────┘
+           │ External Access
+           ▼
+┌──────────────────────┐
+│  Amazon Bedrock      │
+│  Claude Sonnet 4.5   │
+└──────────────────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  Amazon QuickSight   │
+│  Dashboard + Q       │
+└──────────────────────┘
+""", language=None)
+    st.divider()
+    st.caption("Built for AWS Summit HK")
+    st.caption("Snowflake + AWS")
+
 tab1, tab2, tab3, tab4 = st.tabs([
     "Claim Intake & AI Evaluation",
     "Claims Dashboard",
@@ -17,45 +65,153 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "APJ Market View"
 ])
 
-# ── Tab 1: Claim Intake ──────────────────────────────────────────────────────
+def load_claims():
+    return session.sql("""
+        SELECT c.CLAIM_ID, c.CLAIM_TYPE, c.COUNTRY, c.CITY, c.CLAIM_AMOUNT, c.COVERAGE_LIMIT,
+               c.DEDUCTIBLE, c.POLICY_NUMBER, c.POLICY_TYPE, c.FIRST_NAME, c.LAST_NAME,
+               c.STATUS, c.FILING_DATE, c.DESCRIPTION,
+               c.COUNTRY_GDP_PER_CAPITA, c.COUNTRY_INSURANCE_PENETRATION, c.COUNTRY_DISASTER_EXPOSURE,
+               c.AI_DECISION, c.AI_REASONING,
+               r.POPULATION, r.DISASTER_DISPLACED_PERSONS
+        FROM INSURANCE_DEMO_DB.CURATED.CLAIMS c
+        LEFT JOIN INSURANCE_DEMO_DB.CURATED.APAC_COUNTRY_RISK r ON c.COUNTRY = r.COUNTRY
+        ORDER BY c.CLAIM_ID
+    """).to_pandas()
+
+def render_risk_bar(score):
+    try:
+        s = int(float(score))
+    except (ValueError, TypeError):
+        return
+    if s <= 3:
+        color = "#2ecc71"
+        label = "Low"
+    elif s <= 6:
+        color = "#f39c12"
+        label = "Medium"
+    else:
+        color = "#e74c3c"
+        label = "High"
+    pct = s * 10
+    st.markdown(
+        f'<div style="background:#e0e0e0;border-radius:8px;height:28px;width:100%;position:relative;">'
+        f'<div style="background:{color};border-radius:8px;height:28px;width:{pct}%;"></div>'
+        f'<span style="position:absolute;top:4px;left:10px;font-weight:bold;color:#222;">'
+        f'{s}/10 — {label} Risk</span></div>',
+        unsafe_allow_html=True
+    )
+
+def render_timeline(status, ai_decision):
+    steps = ["Filed", "Ingested", "Enriched"]
+    if ai_decision:
+        steps.append("Evaluated")
+        decision_label = str(ai_decision).title()
+        steps.append(decision_label)
+    active = len(steps)
+    cols = st.columns(len(steps))
+    for i, step in enumerate(steps):
+        with cols[i]:
+            if i < active:
+                st.markdown(f"**:green[{step}]**")
+            else:
+                st.markdown(f":gray[{step}]")
+    bar_pct = 100
+    st.progress(bar_pct / 100)
+
+def parse_bedrock_result(raw):
+    result = str(raw).strip()
+    if result.startswith("```"):
+        result = re.sub(r"^```(?:json)?\s*", "", result)
+        result = re.sub(r"\s*```$", "", result)
+    try:
+        return json.loads(result)
+    except Exception:
+        m = re.search(r'\{.*\}', result, re.DOTALL)
+        if m:
+            try:
+                return json.loads(m.group())
+            except Exception:
+                return {"decision": "ERROR", "reasoning": result}
+        return {"decision": "ERROR", "reasoning": result}
+
+def display_evaluation_result(result_dict, row, show_before_after=True):
+    decision = result_dict.get("decision", "UNKNOWN")
+    color_map = {"APPROVE": "green", "DENY": "red", "REFER": "orange"}
+    color = color_map.get(decision, "gray")
+    emoji = {"APPROVE": "white_check_mark", "DENY": "x", "REFER": "warning"}.get(decision, "question")
+    status_map = {"APPROVE": "Approved", "DENY": "Denied", "REFER": "Under Review"}
+    new_status = status_map.get(decision, "Under Review")
+
+    if decision == "APPROVE":
+        st.balloons()
+
+    if show_before_after:
+        st.divider()
+        ba1, ba2 = st.columns(2)
+        with ba1:
+            st.markdown("**Before**")
+            st.metric("Status", str(row.get("STATUS", "Pending")))
+            st.metric("AI Decision", "None")
+        with ba2:
+            st.markdown("**After**")
+            st.metric("Status", new_status)
+            st.metric("AI Decision", decision)
+
+    st.divider()
+    st.success(f"Claim status updated: **{row['STATUS']}** → **{new_status}**")
+
+    r1, r2 = st.columns([1, 2])
+    with r1:
+        st.markdown(f"### :{emoji}: Decision: :{color}[{decision}]")
+        risk = result_dict.get("risk_score", "N/A")
+        st.markdown("**Risk Score**")
+        render_risk_bar(risk)
+        payout = result_dict.get("recommended_payout", 0)
+        st.metric("Recommended Payout", f"${payout:,.0f}" if isinstance(payout, (int, float)) else str(payout))
+    with r2:
+        st.info(f"**Reasoning:** {result_dict.get('reasoning', 'No reasoning provided')}")
+
 
 with tab1:
     st.header("AI Claim Evaluation")
     st.markdown("Select a claim and run it through **Amazon Bedrock (Claude Sonnet 4.5)** for an instant AI adjuster recommendation.")
     st.divider()
 
-    claims_df = session.sql("""
-        SELECT c.CLAIM_ID, c.CLAIM_TYPE, c.COUNTRY, c.CITY, c.CLAIM_AMOUNT, c.COVERAGE_LIMIT,
-               c.DEDUCTIBLE, c.POLICY_NUMBER, c.POLICY_TYPE, c.FIRST_NAME, c.LAST_NAME,
-               c.STATUS, c.FILING_DATE, c.DESCRIPTION,
-               c.COUNTRY_GDP_PER_CAPITA, c.COUNTRY_INSURANCE_PENETRATION, c.COUNTRY_DISASTER_EXPOSURE,
-               r.POPULATION, r.DISASTER_DISPLACED_PERSONS
-        FROM INSURANCE_DEMO_DB.CURATED.CLAIMS c
-        LEFT JOIN INSURANCE_DEMO_DB.CURATED.APAC_COUNTRY_RISK r ON c.COUNTRY = r.COUNTRY
-        ORDER BY c.CLAIM_ID
-    """).to_pandas()
-    claim_id = st.selectbox("Select Claim ID", claims_df["CLAIM_ID"].tolist())
+    claims_df = load_claims()
+
+    labels = []
+    for _, r in claims_df.iterrows():
+        labels.append(f"{r['CLAIM_ID']} — {r['CLAIM_TYPE']} | {r['COUNTRY']} | {r['STATUS']}")
+    label_to_id = dict(zip(labels, claims_df["CLAIM_ID"].tolist()))
+
+    selected_label = st.selectbox("Select Claim", labels)
+    claim_id = label_to_id.get(selected_label)
 
     if claim_id:
         row = claims_df[claims_df["CLAIM_ID"] == claim_id].iloc[0]
 
+        st.markdown("---")
+        st.markdown(f"### {row['CLAIM_ID']} — {row['FIRST_NAME']} {row['LAST_NAME']}")
+
+        render_timeline(row["STATUS"], row.get("AI_DECISION"))
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Amount Claimed", f"${float(row['CLAIM_AMOUNT']):,.0f}")
+        m2.metric("Coverage Limit", f"${float(row['COVERAGE_LIMIT']):,.0f}")
+        m3.metric("Deductible", f"${float(row['DEDUCTIBLE']):,.0f}")
+        m4.metric("Status", row["STATUS"])
+
         detail = pd.DataFrame({
             "Field": [
-                "Claimant", "Policy", "Claim Type", "Policy Type",
-                "Location", "Status", "Filing Date",
-                "Amount Claimed", "Coverage Limit", "Deductible",
+                "Policy", "Claim Type", "Policy Type",
+                "Location", "Filing Date",
             ],
             "Value": [
-                f"{row['FIRST_NAME']} {row['LAST_NAME']}",
                 row["POLICY_NUMBER"],
                 row["CLAIM_TYPE"],
                 row["POLICY_TYPE"],
                 f"{row['CITY']}, {row['COUNTRY']}",
-                row["STATUS"],
                 str(row["FILING_DATE"]),
-                f"${row['CLAIM_AMOUNT']:,.0f}",
-                f"${row['COVERAGE_LIMIT']:,.0f}",
-                f"${row['DEDUCTIBLE']:,.0f}",
             ]
         })
         st.table(detail.set_index("Field"))
@@ -87,51 +243,116 @@ with tab1:
 
         st.divider()
 
-        if st.button("Evaluate with Amazon Bedrock", type="primary", use_container_width=True):
+        existing_decision = row.get("AI_DECISION")
+        existing_reasoning = row.get("AI_REASONING")
+
+        if existing_decision and str(existing_decision).strip():
+            st.markdown("### Previous AI Evaluation")
+            try:
+                prev_result = json.loads(str(existing_reasoning)) if existing_reasoning else {}
+            except Exception:
+                prev_result = {"decision": str(existing_decision), "reasoning": str(existing_reasoning or "")}
+            if "decision" not in prev_result:
+                prev_result["decision"] = str(existing_decision)
+            if "reasoning" not in prev_result and existing_reasoning:
+                prev_result["reasoning"] = str(existing_reasoning)
+
+            prev_decision = prev_result.get("decision", str(existing_decision))
+            prev_color = {"APPROVE": "green", "DENY": "red", "REFER": "orange"}.get(prev_decision, "gray")
+            prev_emoji = {"APPROVE": "white_check_mark", "DENY": "x", "REFER": "warning"}.get(prev_decision, "question")
+
+            pr1, pr2 = st.columns([1, 2])
+            with pr1:
+                st.markdown(f"### :{prev_emoji}: Decision: :{prev_color}[{prev_decision}]")
+                prev_risk = prev_result.get("risk_score", "N/A")
+                st.markdown("**Risk Score**")
+                render_risk_bar(prev_risk)
+                prev_payout = prev_result.get("recommended_payout", 0)
+                st.metric("Recommended Payout", f"${prev_payout:,.0f}" if isinstance(prev_payout, (int, float)) else str(prev_payout))
+            with pr2:
+                st.info(f"**Reasoning:** {prev_result.get('reasoning', 'No reasoning provided')}")
+
+            st.divider()
+            re_eval = st.button("Re-evaluate with Amazon Bedrock", type="secondary", use_container_width=True)
+        else:
+            re_eval = False
+
+        with st.expander("View Bedrock Prompt", expanded=False):
+            st.markdown("This is the prompt sent to **Amazon Bedrock (Claude Sonnet 4.5)** by the `EVALUATE_CLAIM` stored procedure:")
+            st.code(f"""You are an AI insurance claim adjuster.
+Evaluate this claim and respond with JSON only.
+
+CLAIM:
+- Claim ID: {row['CLAIM_ID']}
+- Type: {row['CLAIM_TYPE']}
+- Policy Type: {row['POLICY_TYPE']}
+- Amount: ${float(row['CLAIM_AMOUNT']):,.0f}
+- Coverage Limit: ${float(row['COVERAGE_LIMIT']):,.0f}
+- Deductible: ${float(row['DEDUCTIBLE']):,.0f}
+- Country: {row['COUNTRY']}, City: {row['CITY']}
+- Description: {desc}
+
+MARKET CONTEXT (World Bank / Snowflake Marketplace):
+- GDP per Capita (PPP): {f"${float(gdp):,.0f}" if gdp else "N/A"}
+- Insurance Penetration: {f"{float(ins_pen)*100:.1f}%" if ins_pen else "N/A"}
+- Disaster Exposure: {f"{float(dis_exp)*100:.1f}%" if dis_exp else "N/A"}
+
+Respond with JSON: {{"decision":"APPROVE|DENY|REFER",
+"risk_score":1-10, "reasoning":"...",
+"recommended_payout":number}}""", language="text")
+
+        should_evaluate = False
+        if not existing_decision or not str(existing_decision).strip():
+            should_evaluate = st.button("Evaluate with Amazon Bedrock", type="primary", use_container_width=True)
+        elif re_eval:
+            should_evaluate = True
+
+        if should_evaluate:
+            start_ts = time.time()
+            timer_placeholder = st.empty()
             with st.spinner("Calling Amazon Bedrock (Claude Sonnet 4.5)..."):
                 raw = session.sql(f"CALL INSURANCE_DEMO_DB.AI.EVALUATE_CLAIM('{claim_id}')").collect()[0][0]
-                result = str(raw).strip()
-                if result.startswith("```"):
-                    result = re.sub(r"^```(?:json)?\s*", "", result)
-                    result = re.sub(r"\s*```$", "", result)
-                try:
-                    result_dict = json.loads(result)
-                except Exception:
-                    m = re.search(r'\{.*\}', result, re.DOTALL)
-                    if m:
-                        try:
-                            result_dict = json.loads(m.group())
-                        except Exception:
-                            result_dict = {"decision": "ERROR", "reasoning": result}
-                    else:
-                        result_dict = {"decision": "ERROR", "reasoning": result}
+                elapsed = time.time() - start_ts
+            timer_placeholder.caption(f"Bedrock responded in **{elapsed:.1f}s**")
+            result_dict = parse_bedrock_result(raw)
+            display_evaluation_result(result_dict, row, show_before_after=True)
 
-                decision = result_dict.get("decision", "UNKNOWN")
-                color_map = {"APPROVE": "green", "DENY": "red", "REFER": "orange"}
-                color = color_map.get(decision, "gray")
-                emoji = {"APPROVE": "white_check_mark", "DENY": "x", "REFER": "warning"}.get(decision, "question")
+        st.divider()
+        st.markdown("### Batch Evaluation")
+        pending_df = claims_df[claims_df["STATUS"] == "Pending"].head(5)
+        pending_count = len(pending_df)
+        st.caption(f"{pending_count} pending claims available for batch evaluation.")
 
-                status_map = {"APPROVE": "Approved", "DENY": "Denied", "REFER": "Under Review"}
-                new_status = status_map.get(decision, "Under Review")
+        if pending_count > 0:
+            if st.button(f"Evaluate All {pending_count} Pending Claims", use_container_width=True):
+                progress = st.progress(0)
+                results_container = st.container()
+                for i, (_, prow) in enumerate(pending_df.iterrows()):
+                    pid = prow["CLAIM_ID"]
+                    progress.progress((i) / pending_count)
+                    with results_container:
+                        st.markdown(f"**Evaluating {pid}** — {prow['CLAIM_TYPE']} | {prow['COUNTRY']}...")
+                    start_ts = time.time()
+                    raw = session.sql(f"CALL INSURANCE_DEMO_DB.AI.EVALUATE_CLAIM('{pid}')").collect()[0][0]
+                    elapsed = time.time() - start_ts
+                    rd = parse_bedrock_result(raw)
+                    dec = rd.get("decision", "UNKNOWN")
+                    risk = rd.get("risk_score", "?")
+                    with results_container:
+                        dec_color = {"APPROVE": "green", "DENY": "red", "REFER": "orange"}.get(dec, "gray")
+                        st.markdown(f":{dec_color}[**{dec}**] — Risk {risk}/10 — {elapsed:.1f}s")
+                    progress.progress((i + 1) / pending_count)
+                with results_container:
+                    st.success(f"Batch complete — {pending_count} claims evaluated.")
+        else:
+            st.info("No pending claims to evaluate. All claims have been processed.")
 
-                st.divider()
-                st.success(f"Claim status updated: **{row['STATUS']}** → **{new_status}**")
-
-                r1, r2 = st.columns([1, 2])
-                with r1:
-                    st.markdown(f"### :{emoji}: Decision: :{color}[{decision}]")
-                    risk = result_dict.get("risk_score", "N/A")
-                    st.metric("Risk Score", f"{risk}/10")
-                    payout = result_dict.get("recommended_payout", 0)
-                    st.metric("Recommended Payout", f"${payout:,.0f}" if isinstance(payout, (int, float)) else str(payout))
-                with r2:
-                    st.info(f"**Reasoning:** {result_dict.get('reasoning', 'No reasoning provided')}")
-
-
-# ── Tab 2: Claims Dashboard ──────────────────────────────────────────────────
 
 with tab2:
     st.header("Claims Dashboard")
+
+    if st.button("Refresh Data", key="refresh_dashboard"):
+        pass
 
     kpi_df = session.sql("""
         SELECT
@@ -139,16 +360,30 @@ with tab2:
             ROUND(SUM(CLAIM_AMOUNT), 0) AS TOTAL_AMOUNT,
             ROUND(AVG(CLAIM_AMOUNT), 0) AS AVG_AMOUNT,
             COUNT(DISTINCT COUNTRY) AS COUNTRIES,
-            COUNT(AI_DECISION) AS EVALUATED
+            SUM(CASE WHEN AI_DECISION IS NOT NULL THEN 1 ELSE 0 END) AS EVALUATED,
+            SUM(CASE WHEN AI_DECISION = 'APPROVE' THEN 1 ELSE 0 END) AS APPROVED,
+            SUM(CASE WHEN AI_DECISION = 'DENY' THEN 1 ELSE 0 END) AS DENIED,
+            SUM(CASE WHEN AI_DECISION = 'REFER' THEN 1 ELSE 0 END) AS REFERRED
         FROM INSURANCE_DEMO_DB.CURATED.CLAIMS
     """).to_pandas()
 
-    c1, c2, c3, c4, c5 = st.columns(5)
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("Total Claims", f"{kpi_df['TOTAL_CLAIMS'].iloc[0]:,}")
     c2.metric("Total Claimed", f"${kpi_df['TOTAL_AMOUNT'].iloc[0]:,.0f}")
     c3.metric("Avg Claim", f"${kpi_df['AVG_AMOUNT'].iloc[0]:,.0f}")
     c4.metric("APJ Markets", f"{kpi_df['COUNTRIES'].iloc[0]}")
-    c5.metric("AI Evaluated", f"{kpi_df['EVALUATED'].iloc[0]}")
+
+    ev1, ev2, ev3, ev4 = st.columns(4)
+    evaluated = int(kpi_df['EVALUATED'].iloc[0])
+    total = int(kpi_df['TOTAL_CLAIMS'].iloc[0])
+    ev1.metric("AI Evaluated", f"{evaluated} / {total}")
+    ev2.metric("Approved", f"{int(kpi_df['APPROVED'].iloc[0])}")
+    ev3.metric("Denied", f"{int(kpi_df['DENIED'].iloc[0])}")
+    ev4.metric("Referred", f"{int(kpi_df['REFERRED'].iloc[0])}")
+
+    if total > 0:
+        st.progress(evaluated / total)
+        st.caption(f"{evaluated}/{total} claims evaluated ({evaluated*100//total}%)")
 
     st.divider()
 
@@ -223,7 +458,6 @@ with tab2:
     })
     st.table(top_display.set_index("Claim"))
 
-# ── Tab 3: Policy Search ─────────────────────────────────────────────────────
 
 with tab3:
     st.header("Policy Search")
@@ -311,7 +545,6 @@ with tab3:
             except Exception as e:
                 st.error(f"Search error: {e}")
 
-# ── Tab 4: APJ Market View ────────────────────────────────────────────────────
 
 with tab4:
     st.header("APJ Insurance Market View")
