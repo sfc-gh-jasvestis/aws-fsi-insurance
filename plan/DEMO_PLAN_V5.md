@@ -636,6 +636,52 @@ SHOW STREAMLITS IN SCHEMA INSURANCE_DEMO_DB.APP;
 
 ---
 
+## Demo Day Checklist — Pre-Warm & Reliability
+
+Run these steps **10 minutes before** the live demo or screen recording to ensure a smooth, fast experience.
+
+### 1. Pre-Evaluate 2–3 Claims (warm Bedrock + show results instantly)
+```sql
+-- Evaluate a few claims ahead of time so the demo can show instant results
+CALL INSURANCE_DEMO_DB.AI.EVALUATE_CLAIM('CLM-001');
+CALL INSURANCE_DEMO_DB.AI.EVALUATE_CLAIM('CLM-002');
+CALL INSURANCE_DEMO_DB.AI.EVALUATE_CLAIM('CLM-003');
+-- Leave CLM-004+ as Pending for the live "wow moment" evaluation
+```
+> **Why:** The Streamlit app now shows *previous AI results* for already-evaluated claims — no button click needed. This lets you open CLM-001 and instantly show Bedrock's decision + risk score without waiting. Then switch to a pending claim (e.g., CLM-010) for the live Bedrock call.
+
+### 2. Pre-Warm Cortex Search (avoid cold-start on Tab 3)
+```sql
+-- Run a throwaway search to warm the Cortex Search service
+SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
+    'INSURANCE_DEMO_DB.AI.POLICY_SEARCH_SERVICE',
+    '{"query": "warm up query", "columns": ["SEARCH_TEXT"], "limit": 1}'
+);
+```
+> **Why:** First Cortex Search call after idle can take 5–8 seconds. A warm-up query ensures your live demo search responds in <2 seconds.
+
+### 3. Pre-Warm Cortex AI_COMPLETE (avoid cold-start on AI Summary)
+```sql
+SELECT SNOWFLAKE.CORTEX.AI_COMPLETE('claude-3-5-sonnet', 'Say hello');
+```
+
+### 4. Open the Streamlit App
+- Navigate to the app URL and load Tab 1 to pre-warm the Snowpark session
+- Verify claims data loads (dropdown populated)
+- Switch to Tab 2 (Dashboard) to confirm KPIs render
+- Switch to Tab 3 (Policy Search) and click one sample question to verify end-to-end
+
+### 5. Demo Flow Recommendation
+1. **Start on Tab 1** — show CLM-001 (pre-evaluated) → instant AI result with risk bar and timeline
+2. **Switch to a pending claim** (e.g., CLM-010) → click "Evaluate with Amazon Bedrock" → live call with timer
+3. **Show batch evaluation** — "Evaluate All Pending Claims" button → progress bar across 5 claims
+4. **Tab 3 (Policy Search)** — click a sample question → show 5 results + AI summary
+5. **Tab 2 (Dashboard)** — show updated KPIs, evaluation progress bar, click Refresh
+6. **Tab 4 (APJ Market View)** — quick scroll through World Bank charts
+7. **Switch to QuickSight** — show dashboard + ask Q a question
+
+---
+
 ## Tear-Down Commands
 
 ```bash
