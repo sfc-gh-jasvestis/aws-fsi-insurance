@@ -101,23 +101,6 @@ def render_risk_bar(score):
         unsafe_allow_html=True
     )
 
-def render_timeline(status, ai_decision):
-    steps = ["Filed", "Ingested", "Enriched"]
-    if ai_decision:
-        steps.append("Evaluated")
-        decision_label = str(ai_decision).title()
-        steps.append(decision_label)
-    active = len(steps)
-    cols = st.columns(len(steps))
-    for i, step in enumerate(steps):
-        with cols[i]:
-            if i < active:
-                st.markdown(f"**:green[{step}]**")
-            else:
-                st.markdown(f":gray[{step}]")
-    bar_pct = 100
-    st.progress(bar_pct / 100)
-
 def parse_bedrock_result(raw):
     result = str(raw).strip()
     if result.startswith("```"):
@@ -169,7 +152,8 @@ def display_evaluation_result(result_dict, row, show_before_after=True):
         payout = result_dict.get("recommended_payout", 0)
         st.metric("Recommended Payout", f"${payout:,.0f}" if isinstance(payout, (int, float)) else str(payout))
     with r2:
-        st.info(f"**Reasoning:** {result_dict.get('reasoning', 'No reasoning provided')}")
+        _reasoning = result_dict.get('reasoning', 'No reasoning provided').replace('$', '\\$')
+        st.info(f"**Reasoning:** {_reasoning}")
 
 
 with tab1:
@@ -191,9 +175,6 @@ with tab1:
         row = claims_df[claims_df["CLAIM_ID"] == claim_id].iloc[0]
 
         st.markdown("---")
-        st.markdown(f"### {row['CLAIM_ID']} — {row['FIRST_NAME']} {row['LAST_NAME']}")
-
-        render_timeline(row["STATUS"], row.get("AI_DECISION"))
 
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Amount Claimed", f"${float(row['CLAIM_AMOUNT']):,.0f}")
@@ -270,7 +251,8 @@ with tab1:
                 prev_payout = prev_result.get("recommended_payout", 0)
                 st.metric("Recommended Payout", f"${prev_payout:,.0f}" if isinstance(prev_payout, (int, float)) else str(prev_payout))
             with pr2:
-                st.info(f"**Reasoning:** {prev_result.get('reasoning', 'No reasoning provided')}")
+                _reasoning = prev_result.get('reasoning', 'No reasoning provided').replace('$', '\\$')
+                st.info(f"**Reasoning:** {_reasoning}")
 
             st.divider()
             re_eval = st.button("Re-evaluate with Amazon Bedrock", type="secondary", use_container_width=True)
@@ -319,7 +301,7 @@ Respond with JSON: {{"decision":"APPROVE|DENY|REFER",
 
         st.divider()
         st.markdown("### Batch Evaluation")
-        pending_df = claims_df[claims_df["STATUS"] == "Pending"].head(5)
+        pending_df = claims_df[claims_df["STATUS"] == "Pending"]
         pending_count = len(pending_df)
         st.caption(f"{pending_count} pending claims available for batch evaluation.")
 
@@ -520,15 +502,22 @@ with tab3:
                     st.divider()
                     st.markdown("**AI Summary**")
                     with st.spinner("Generating summary with Cortex AI..."):
-                        context = "\n\n".join([h.get("SEARCH_TEXT", "") for h in hits])
+                        context_parts = []
+                        for h in hits:
+                            doc_id = h.get("POLICY_NUMBER", "Unknown")
+                            doc_type = h.get("POLICY_TYPE", "Unknown")
+                            doc_text = h.get("SEARCH_TEXT", "")
+                            context_parts.append(f"[Document {doc_id} — {doc_type}]\n{doc_text}")
+                        context = "\n\n".join(context_parts)
                         safe_ctx = context.replace("'", "''").replace("\\", "\\\\")
                         safe_query = query.replace("'", "''")
                         summary = session.sql(f"""
                             SELECT SNOWFLAKE.CORTEX.AI_COMPLETE('claude-3-5-sonnet',
                                 'You are an insurance policy expert. Answer the question based ONLY on the {len(hits)} policy documents below.
-                                Reference ALL policies by their policy number. Be specific about coverage limits, deductibles, and exclusions.
-                                If the policies do not cover what is asked, say so clearly.
-                                Write dollar amounts as plain text. Do not use LaTeX.
+                                Each document is labelled with its document ID (e.g. DOC-024) and policy type. Reference documents by their ID and type.
+                                Be specific about coverage details, deductibles, and exclusions mentioned in the text.
+                                If the documents do not cover what is asked, say so clearly.
+                                Write dollar amounts as plain text. Do not use LaTeX or dollar-sign math notation.
 
                                 QUESTION: {safe_query}
 
@@ -539,7 +528,7 @@ with tab3:
                         answer = str(summary).strip()
                         if answer.startswith('"') and answer.endswith('"'):
                             answer = answer[1:-1]
-                        answer = answer.replace("\\n", "\n").replace("\\t", " ")
+                        answer = answer.replace("\\n", "\n").replace("\\t", " ").replace('$', '\\$')
                         st.markdown(answer)
 
             except Exception as e:

@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Generates 10 adjuster note text files and uploads them to S3.
-# Run during Phase 3 (Step 3.4) — requires the S3 bucket to already exist.
-
-BUCKET="sf-insurance-demo-apj"
+BUCKET="sf-insurance-demo-apj-2026"
 PREFIX="adjuster-notes"
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
@@ -13,235 +10,422 @@ echo "=== Generating 10 adjuster notes ==="
 
 cat > "$TMPDIR/adjuster_note_001.txt" << 'NOTEEOF'
 FIELD INSPECTION REPORT
-Claim Reference: CLM-001
-Date of Inspection: 15 January 2024
-Adjuster: Lim Wei Ming
-Location: Singapore (Block 123, Toa Payoh North, #12-345, Singapore 310123)
+Claim Number: CLM-001
+Date of Inspection: 2025-09-20
+Location: Tsim Sha Tsui, Kowloon, Hong Kong
+Adjuster: David Wong (License #HK4521)
 
-Property Details:
-4-room HDB apartment, approximately 990 sq ft
-Built: 1995
-Current Occupancy: Owner-occupied
+INCIDENT DETAILS:
+Insured's 2024 Mercedes-Benz S580 was stolen from the basement parking garage of K11 MUSEA shopping mall on September 17, 2025, between 19:30-22:45. Security cameras confirm vehicle entry at 19:22 but show no exit footage of the vehicle. Theft discovered upon insured's return from dinner.
 
-Damage Assessment:
-Extensive water damage observed affecting the master bedroom, adjacent bathroom, and common corridor. The incident originated from a burst pipe concealed within the common bathroom wall. Water has saturated approximately 215 sq ft of flooring, with visible damage to the parquet flooring which shows significant warping and buckling. Moisture meter readings indicate elevated levels (28-35%) in affected wall sections up to 1.2 meters height. Bathroom wall tiles show signs of delamination, with approximately 40% of tiles requiring replacement. Paint bubbling and peeling observed on three walls. The built-in wardrobe in the master bedroom has sustained water damage at its base, with visible swelling of the particle board material. No structural damage to concrete walls or ceiling observed. Mold growth noted in corner sections of affected areas, particularly where the bathroom wall meets the bedroom wall. Water stains visible on corridor walls extending approximately 3 meters from point of origin.
+POLICE INVOLVEMENT:
+- Case reported to Tsim Sha Tsui Police Station (Case #TST-2025-0917-284)
+- CCTV footage obtained from mall security
+- Vehicle details circulated to border control points
 
-Estimated Repair Cost: USD 12,800
-- Flooring replacement: $5,200
-- Wall repairs and painting: $2,800
-- Bathroom retiling: $2,400
-- Built-in wardrobe replacement: $1,900
-- Plumbing repairs: $500
+EVIDENCE COLLECTED:
+- Mall parking ticket (entry time verified)
+- Police report
+- Security camera footage
+- Vehicle registration documents
+- Original keys in insured's possession
+- GPS tracking system disabled at 21:03
 
-Claimant Cooperation: Excellent
-- Provided immediate access to property
-- All requested documentation submitted promptly
-- Maintained clear communication throughout
+COST BREAKDOWN:
+2024 Mercedes-Benz S580 Base Value: $72,000.00
+Custom Wheels and Tires: $2,800.00
+Recently Installed Audio System: $721.80
+Total Loss Amount: $75,521.80
 
-Recommendation: APPROVE
-Damage clearly results from sudden pipe burst, which is a covered peril under policy terms. Damage extent and repair costs are reasonable for the type of incident. No evidence of pre-existing conditions or maintenance neglect that would void coverage. Recommend full approval of claim amount with standard deductible applied.
+FINDINGS:
+Physical evidence and documentation support the theft claim. No signs of insurance fraud detected. Vehicle equipped with factory anti-theft system and GPS tracking. Professional theft likely involved, given location and execution. Recommend approval of claim minus deductible ($1,000).
+
+RECOMMENDATION:
+Approve claim payment of $74,521.80 (total loss minus deductible)
+
+David Wong
+Senior Claims Adjuster
+Hong Kong Insurance Adjusters Ltd.
 NOTEEOF
 
 cat > "$TMPDIR/adjuster_note_002.txt" << 'NOTEEOF'
 FIELD INSPECTION REPORT
-Claim Reference: CLM-002
-Date of Inspection: 15 November 2023
-Adjuster: Lim Wei Ming
-Location: Singapore
-Property Details: Commercial Office Unit #12-05, Marina Bay Financial Centre Tower 3
+Claim Number: CLM-002
+Date of Inspection: January 18, 2026
+Location: Causeway Bay, Hong Kong
+Field Adjuster: Raymond Wong (License #HK4472)
 
-Damage Assessment:
-Extensive water damage observed affecting approximately 85 square meters of office space following the failure of a concealed water pipe in the ceiling void. The affected areas include suspended ceiling tiles (40% requiring replacement), carpeted flooring throughout, and gypsum board walls particularly in the northeast corner. Moisture meter readings indicate significant water saturation in walls up to 1.2m height. Three workstations show severe water damage to wooden surfaces and electrical components. Document storage cabinets and their contents sustained water damage. Mold growth visible on lower sections of affected walls, indicating the incident occurred approximately 72 hours before reporting. The primary source of water ingress has been identified as a corroded copper pipe joint above ceiling tile grid reference C7. Secondary damage noted to network cabling infrastructure and electrical trunking. No structural damage observed to concrete elements. Emergency mitigation measures including dehumidification already in progress by approved contractor.
+INCIDENT DETAILS:
+On January 16, 2026, at approximately 14:30 local time, insured's vehicle (2025 Mercedes-Benz S-Class) was involved in a collision with a commercial delivery van at the intersection of Hennessy Road and Canal Road East. CCTV footage from nearby buildings confirms insured had right of way when the delivery van failed to stop at the red light.
 
-Estimated Repair Cost: USD 42,500
+DAMAGE ASSESSMENT:
+- Severe impact damage to front passenger side
+- Structural damage to A-pillar and roof support
+- Airbag deployment (front and side)
+- Advanced driver assistance systems compromised
+- High-voltage battery pack damaged (hybrid system)
 
-Claimant Cooperation: Excellent - provided immediate access and all requested documentation
+COST BREAKDOWN:
+1. Parts and Components: USD 89,765.32
+   - Replacement body panels: USD 22,450
+   - Battery pack: USD 42,315.32
+   - ADAS components: USD 25,000
 
-Recommendation: APPROVE
-Reasoning: Damage consistent with reported incident. Policy coverage confirmed. Quantum reasonable for scope of repairs required. No evidence of pre-existing conditions or maintenance neglect. Recommend processing claim with standard deductible application.
+2. Labor and Installation: USD 45,729.35
+   - Body work: USD 28,450
+   - Electrical systems: USD 17,279.35
+
+3. Third-party Property Damage: USD 36,000
+   - Delivery van repairs: USD 31,000
+   - Damaged cargo: USD 5,000
+
+Total Claim Amount: USD 171,494.67
+Less Deductible: USD 1,000
+Net Claim: USD 170,494.67
+
+SUPPORTING EVIDENCE:
+- CCTV footage from three angles
+- Police report #HK-2026-0116-243
+- Photos of damage (47 images attached)
+- Repair facility estimate from authorized Mercedes-Benz Service Center (Wan Chai)
+
+RECOMMENDATION:
+Based on inspection findings and documentation, recommend full approval of claim amount. Third-party liability is clearly established through video evidence and police report.
 NOTEEOF
 
 cat > "$TMPDIR/adjuster_note_003.txt" << 'NOTEEOF'
 FIELD INSPECTION REPORT
-Claim Reference: CLM-003
-Date: 15 March 2024
-Adjuster: Tanaka Hiroshi
-Location: Tokyo, Japan
-Property Type: Commercial Office Space - 12th Floor, Shibuya Cross Tower
+Claim Number: CLM-003
+Date of Inspection: 2025-09-24
+Adjuster: David Chan (License #HK4472)
+Location: 15F Tower B, Highland Park, Tai Po, New Territories, Hong Kong
 
-Damage Assessment:
-Extensive water damage observed affecting approximately 180 square meters of office space following the failure of a main water supply pipe in the ceiling void. The burst pipe occurred during weekend hours, resulting in prolonged water exposure. Primary damage includes: waterlogged suspended ceiling tiles (80% requiring replacement), severe water staining and delamination of gypsum wall boards along the northern and eastern walls, warping of engineered wood flooring throughout, and water infiltration into electrical conduits. Three workstation clusters show damage to electronic equipment including monitors and desktop computers. Moisture meter readings indicate elevated levels (28-35%) in wall cavities, suggesting potential hidden damage. Mold growth already visible in several corners, particularly near HVAC vents. Building maintenance records indicate the pipe system was last inspected 4 years ago, exceeding recommended inspection intervals.
+INCIDENT DETAILS:
+On September 21, 2025, Super Typhoon Meihua made landfall in Hong Kong with sustained winds of 195 km/h. The insured's 15th-floor apartment sustained significant damage from wind-driven rain and debris impact. Primary damage occurred when multiple windows failed due to pressure differential, allowing water intrusion throughout the 1,200 sq ft unit.
 
-Estimated Repair Cost: USD 78,500
-- Ceiling replacement: $12,000
-- Wall repairs and painting: $15,500
-- Flooring replacement: $22,000
-- Electrical system inspection/repair: $8,000
-- Equipment replacement: $16,000
-- Mold remediation: $5,000
+OBSERVED DAMAGES:
+- Complete failure of three bedroom windows and sliding doors
+- Extensive water damage to hardwood flooring throughout (85% affected)
+- Ceiling water damage in living room and master bedroom
+- Mold development on drywall (30% of walls affected)
+- Kitchen cabinetry water damage
+- Electrical system compromise in affected areas
+- Personal property damage including furniture and electronics
 
-Claimant Cooperation: Excellent - Provided immediate access, all requested documentation, and maintenance records promptly.
+COST BREAKDOWN:
+Window replacement: $42,500
+Flooring removal and replacement: $68,400
+Drywall repair and painting: $35,800
+Kitchen renovation: $45,900
+Electrical system repairs: $18,500
+Personal property replacement: $48,667.83
+Mold remediation: $15,500
+Temporary housing allowance: $2,500
+Total: $277,767.83
 
-Recommendation: APPROVE
-Damage clearly results from sudden and accidental pipe failure. No evidence of maintenance negligence that would void coverage. Repair costs are reasonable for scope of damage. Recommend expedited processing to prevent secondary damage from moisture exposure.
+EVIDENCE COLLECTED:
+- 147 digital photographs
+- Moisture meter readings from all affected areas
+- Weather report from Hong Kong Observatory
+- Contractor evaluation reports (3)
+- Engineering assessment of structural integrity
+
+RECOMMENDATION:
+Based on documented evidence and policy coverage, recommend full approval of claim amount less deductible ($2,500). Damage is consistent with reported weather event and falls within policy limits.
 NOTEEOF
 
 cat > "$TMPDIR/adjuster_note_004.txt" << 'NOTEEOF'
-Field Inspection Report
-Claim Reference: CLM-004
-Date: 15 March 2024
-Adjuster: Tanaka Hiroshi
-Location: Japan (Yokohama City, Kanagawa Prefecture)
+FIELD INSPECTION REPORT
+Claim Number: CLM-004
+Date of Inspection: December 10, 2025
+Adjuster: Michael Chan (License #HK2241)
+Location: 15F Tower B, Highland Park, Tai Po, New Territories, Hong Kong
 
-Property Details:
-Commercial building - 4-story office complex
-Address: 2-1-5 Minato Mirai, Nishi-ku, Yokohama
-Construction: Steel frame with glass curtain wall
-Year Built: 2015
+INCIDENT DETAILS:
+On December 8, 2025, Typhoon Saola (Category 4) made landfall in Hong Kong, causing significant structural damage to Ms. Wong's 15th-floor apartment. Primary damage occurred between 02:00-04:00 when wind speeds exceeded 180 km/h.
 
-Damage Assessment:
-Extensive water damage observed on floors 2 and 3 following the rupture of a main water supply line in the ceiling void of the 3rd floor. The burst pipe occurred during non-business hours, resulting in approximately 8 hours of continuous water flow before discovery. Affected areas include: suspended ceiling systems (approximately 400 sq meters), electrical conduits, IT infrastructure, carpeting, and drywall partitions. Visible mold growth already present in several wall cavities. Water has penetrated through multiple layers of drywall and insulation. Desktop computers, workstations, and office furniture on both floors have sustained significant water damage. Building's electrical system shows signs of water ingress in junction boxes and conduits. Professional moisture readings indicate elevated levels in structural elements requiring immediate drying intervention to prevent secondary damage.
+OBSERVED DAMAGES:
+1. Complete destruction of master bedroom window system (3.5m x 2m)
+2. Water infiltration affecting 85% of wooden flooring (120 sq meters)
+3. Structural damage to concrete balcony railing
+4. Interior wall water damage in three rooms
+5. HVAC system compromised by water intrusion
+6. Personal property damage (furniture, electronics, artwork)
 
-Estimated Repair Cost: USD 285,000
-- Water damage restoration: $95,000
-- Electrical system repairs: $45,000
-- Interior finishes replacement: $75,000
-- Equipment/furniture replacement: $70,000
+COST BREAKDOWN:
+- Window replacement & installation: $28,500
+- Flooring removal and replacement: $36,000
+- Structural repairs (balcony): $22,450
+- Wall repairs and repainting: $15,800
+- HVAC system repairs: $12,500
+- Personal property replacement: $24,841.57
+- Temporary protective measures: $2,500
+Total: $142,591.57
 
-Claimant Cooperation: Excellent
-Property manager provided immediate access, all requested documentation, and maintenance records promptly.
+EVIDENCE COLLECTED:
+- 47 digital photographs
+- Weather report from Hong Kong Observatory
+- Building management incident report
+- Three contractor estimates
+- Original purchase receipts for damaged items
 
-Recommendation: APPROVE
-Cause of loss clearly accidental and covered under policy terms. No evidence of maintenance negligence. Immediate remediation necessary to prevent further damage and business interruption. Recommend expedited claim processing to minimize business impact.
+RECOMMENDATION:
+Based on policy coverage and documented evidence, I recommend full approval of claim amount minus deductible ($2,500). Total recommended payout: $140,091.57.
+
+Additional Notes: Property requires immediate temporary weather protection. Recommend expedited processing due to ongoing rainy season.
+
+Michael Chan
+Senior Claims Adjuster
+Hong Kong Property Claims Division
 NOTEEOF
 
 cat > "$TMPDIR/adjuster_note_005.txt" << 'NOTEEOF'
 FIELD INSPECTION REPORT
-Claim Reference: CLM-005
-Date: 15 November 2023
-Adjuster: Somchai Thongchai
-Location: Bangkok, Thailand
-Property Type: Commercial Building - 4-story retail complex
-Address: 789 Sukhumvit Road, Watthana, Bangkok 10110
+Claim Number: CLM-005
+Date of Report: 2025-11-23
+Adjuster: Wong Mei-ling (#HK2241)
+Location: Hong Kong Adventist Hospital - Stubbs Road, Happy Valley, Hong Kong
 
-DAMAGE ASSESSMENT:
-Extensive water damage observed across multiple floors resulting from blocked drainage system during recent heavy monsoon rains. Primary affected areas include the ground floor retail spaces and basement parking facility. Water ingress through compromised roof membrane has caused significant ceiling damage on 4th floor. Visible signs of water staining on walls, warped wooden flooring in ground floor retail units, and compromised electrical systems. Mold growth detected in approximately 40% of affected areas. Building's main electrical room shows signs of water exposure, requiring immediate attention. HVAC system impacted with water damage to ducting and air handling units. Several shop tenants reported inventory losses, though these fall outside building coverage scope. Structural assessment reveals no immediate stability concerns, but prolonged exposure to moisture may compromise internal wall integrity if not addressed promptly. Emergency mitigation measures already implemented include temporary roof repairs and water extraction from basement levels.
+INCIDENT DETAILS:
+On November 15, 2025, insured David Lam (age 42) was admitted to Hong Kong Adventist Hospital following severe abdominal pain diagnosed as acute appendicitis requiring immediate surgical intervention. Patient presented with fever and localized pain in lower right quadrant.
 
-Estimated Repair Cost: USD 285,000
+MEDICAL PROCEDURES:
+- Emergency laparoscopic appendectomy
+- Three-day post-operative hospital stay
+- Follow-up care and antibiotics
 
-Claimant Cooperation: High - Property management provided full access and documentation
+EVIDENCE REVIEWED:
+1. Hospital admission records
+2. Surgical reports from Dr. Chen Wei-ming
+3. Laboratory test results
+4. Post-operative care documentation
+5. Original medical bills and receipts
+6. Pharmacy dispensing records
 
-Recommendation: APPROVE
-Damages clearly fall within policy coverage for water damage from blocked drainage systems. No evidence of pre-existing maintenance issues or negligence. Recommend immediate approval to prevent further deterioration and secondary damage. Suggest phased repair approach prioritizing electrical systems and roof membrane replacement.
+COST BREAKDOWN:
+Surgical procedure: USD 22,450.00
+Hospital stay (3 days): USD 12,600.00
+Anesthesia: USD 3,875.00
+Laboratory tests: USD 1,654.35
+Post-operative medications: USD 945.00
+Follow-up consultations: USD 1,400.00
+Total claimed amount: USD 42,924.35
+
+COVERAGE ANALYSIS:
+Policy limit: USD 100,000
+Deductible: USD 3,000
+Net payable amount: USD 39,924.35
+
+RECOMMENDATIONS:
+Based on review of all medical documentation and current policy terms, I recommend full approval of claim less deductible. All procedures were medically necessary and costs align with standard rates for private hospitals in Hong Kong. No evidence of pre-existing condition or policy exclusions noted.
+
+Wong Mei-ling
+Senior Claims Adjuster
+Hong Kong Region
 NOTEEOF
 
 cat > "$TMPDIR/adjuster_note_006.txt" << 'NOTEEOF'
 FIELD INSPECTION REPORT
-Claim Reference: CLM-006
-Date: 15 November 2023
-Adjuster: Somchai Thongchai
-Location: Bangkok, Thailand
-Property: Commercial Building - Sukhumvit Plaza, 12-story office complex
-Age of Building: 18 years
+Claim Number: CLM-006
+Date of Report: 2025-10-15
+Adjuster: Wong Mei-ling (#HK2241)
+Location: Hong Kong Adventist Hospital - Stubbs Road
 
-DAMAGE ASSESSMENT:
-Extensive water damage observed across floors 8-12 resulting from tropical storm overflow of rooftop drainage system. Primary affected areas include suspended ceilings, electrical conduits, and wall cavities. Moisture meter readings indicate severe saturation of gypsum board walls (readings 95-100% in multiple locations). Visible mold growth present in approximately 40% of affected areas, particularly in corner offices and server room on 10th floor. HVAC system shows signs of water infiltration with standing water in air handling units. Carpeting throughout affected floors is completely saturated and requires replacement. Several workstations and office furniture items show irreversible water damage. Building's main electrical distribution panel on 9th floor exhibits corrosion from water exposure, requiring immediate attention. Structural assessment reveals no compromise to building integrity, though decorative ceiling elements show risk of collapse in several areas. Emergency water extraction was performed by building management, but significant residual moisture remains.
+INCIDENT DETAILS:
+On October 8, 2025, insured David Lam (age 42) was admitted to Hong Kong Adventist Hospital following severe abdominal pain and fever. Emergency diagnostic tests revealed acute appendicitis with complications. Patient underwent emergency laparoscopic appendectomy on October 9, 2025, followed by five days of inpatient care due to post-surgical infection.
 
-Estimated Repair Cost: USD 875,000
+EVIDENCE REVIEWED:
+- Hospital admission records
+- Surgical reports from Dr. Chen Wei-ming
+- Laboratory test results
+- Medical imaging (CT scan) reports
+- Detailed hospital billing statements
+- Prescription medication records
 
-Claimant Cooperation: Excellent - provided immediate access and all requested documentation
+COST BREAKDOWN:
+1. Initial Emergency Room Visit: HKD 12,450
+2. Diagnostic Tests & Imaging: HKD 28,760
+3. Surgical Procedure: HKD 168,900
+4. Hospital Room (5 days): HKD 45,500
+5. Post-surgical Medications: HKD 15,890
+6. Follow-up Consultations: HKD 8,500
+Total: HKD 680,000 (USD 86,560.35)
 
-Recommendation: APPROVE
-Reasoning: Damage clearly results from covered peril (storm water ingress). All damage documented is consistent with reported cause of loss. Building maintenance records show regular upkeep of drainage system; no evidence of contributory negligence. Repair costs are in line with scope of damage and local market rates.
+FINDINGS:
+All medical procedures were deemed necessary and appropriate for the condition. Costs align with standard private hospital rates in Hong Kong. Documentation is complete and verified. No pre-existing conditions noted. Claim falls within policy coverage limits.
+
+RECOMMENDATION:
+Based on thorough review of medical documentation and current policy terms, recommend full approval of claim amount USD 86,560.35, less deductible of USD 3,000.00. Net payment recommended: USD 83,560.35.
+
+Wong Mei-ling
+Senior Claims Adjuster
+Hong Kong Region
 NOTEEOF
 
 cat > "$TMPDIR/adjuster_note_007.txt" << 'NOTEEOF'
 FIELD INSPECTION REPORT
-Claim Reference: CLM-007
-Date: 15 March 2024
-Adjuster: Somchai Thongchai
-Location: Bangkok, Thailand
-Property Type: Commercial Restaurant (2-story shophouse)
-Address: 789 Sukhumvit Soi 55, Watthana, Bangkok 10110
+Claim Number: CLM-007
+Date of Inspection: 2026-02-15
+Adjuster: Wong Mei Ling (#SG-ADJ-2241)
+Location: Mount Elizabeth Novena Hospital, Singapore
 
-DAMAGE ASSESSMENT:
-Extensive water damage observed following roof failure during severe monsoon storm on 10 March 2024. Primary affected areas include main dining room ceiling (85 sq m), kitchen area (45 sq m), and second-floor storage space (60 sq m). Ceiling plasterboard shows significant water saturation with multiple collapse points. Black mold development evident in corner sections, particularly near HVAC vents. Electrical systems compromised with visible corrosion on main distribution board. Kitchen equipment affected includes hood ventilation system and lighting fixtures. Water penetration has caused warping of hardwood flooring in dining area, requiring full replacement. Wall paint bubbling and peeling throughout affected areas. Supporting wooden structures in roof space show signs of prolonged water exposure with potential structural compromise. Secondary damage to POS systems and dining furniture noted. Emergency temporary repairs (tarpaulin covering) in place but inadequate for long-term resolution.
+INCIDENT DETAILS:
+Ms. Linda Tan (age 42) was diagnosed with Stage 3 breast cancer following routine mammogram screening at Mount Elizabeth Novena Hospital on 2026-01-28. Initial biopsy confirmed invasive ductal carcinoma in left breast with lymph node involvement.
 
-Estimated Repair Cost: USD 78,500
-- Roof replacement: $25,000
-- Interior repairs: $32,000
-- Equipment replacement: $15,000
-- Electrical system repairs: $6,500
+EVIDENCE REVIEWED:
+- Medical records from Dr. Chen Wei Ming (Oncologist)
+- Pathology report dated 2026-01-30
+- PET-CT scan results showing metastasis to axillary lymph nodes
+- Treatment plan documentation
+- Hospital admission records
+- Original policy documentation (#LP-98765432)
 
-Claimant Cooperation: Excellent - provided all requested documentation promptly, including previous maintenance records and contractor quotes.
+COST BREAKDOWN:
+1. Initial diagnostics and biopsy: USD 12,458.30
+2. PET-CT scan and imaging: USD 8,924.50
+3. Surgical procedure (mastectomy): USD 68,750.00
+4. Hospital stay (8 days): USD 42,300.00
+5. Chemotherapy (first 3 cycles): USD 156,800.00
+6. Radiation therapy (planned): USD 95,600.00
+7. Medications and supplies: USD 13,749.98
 
-RECOMMENDATION: APPROVE
-Damage clearly falls within policy coverage for storm damage. No evidence of pre-existing conditions or maintenance negligence. All damage consistent with reported storm event and supported by weather records. Recommend full approval of claim with standard depreciation applications per policy terms.
+Total claimed amount: USD 398,582.78
+Deductible applicable: USD 250.00
+Net payable amount: USD 398,332.78
+
+FINDINGS:
+Claim is valid under policy terms. All medical procedures are deemed necessary and costs are within acceptable range for Singapore private healthcare. Documentation is complete and verified. Treatment plan follows standard protocols for Stage 3 breast cancer. Recommend approval of claim amount after deductible.
+
+Additional Notes:
+Patient is currently undergoing chemotherapy with good response. Prognosis is favorable with current treatment plan. Follow-up assessment may be required for subsequent treatment phases.
 NOTEEOF
 
 cat > "$TMPDIR/adjuster_note_008.txt" << 'NOTEEOF'
 FIELD INSPECTION REPORT
-Claim Reference: CLM-008
-Date: 15 March 2024
-Adjuster: Somchai Thongchai
-Location: Bangkok, Thailand
-Property Type: Commercial Building - 4-story retail complex
+Claim Number: CLM-008
+Date of Inspection: 2026-01-24
+Adjuster: Wong Mei Ling (#SG2241)
+Location: Mount Elizabeth Hospital, Singapore
 
-DAMAGE ASSESSMENT:
-Extensive water damage observed across multiple floors following severe monsoon flooding. Primary affected areas include ground floor retail spaces and basement parking facility. Ground floor shows clear water line at 1.2m height with significant damage to drywall, electrical systems, and floor coverings. Mold growth already visible on walls up to 1.5m height. Six retail units severely impacted with destroyed inventory and fixtures. Basement parking area remains partially flooded (0.3m depth) with evidence of structural damage to support columns - concrete spalling observed in three locations. Electrical distribution panel completely submerged during peak flooding requiring full replacement. HVAC system damaged beyond repair due to water infiltration. External drainage system showed signs of pre-existing maintenance issues which likely contributed to water ingress severity. Building's waterproofing system appears to have failed at multiple points, particularly around service penetrations and expansion joints.
+INCIDENT DETAILS:
+Ms. Linda Tan (age 42) was diagnosed with Stage 2 breast cancer following routine mammogram screening at Mount Elizabeth Hospital on 2026-01-15. Initial biopsy confirmed invasive ductal carcinoma in the left breast.
 
-Estimated Repair Cost: USD 875,000
+MEDICAL EVIDENCE REVIEWED:
+- Diagnostic mammogram and ultrasound reports dated 2026-01-15
+- Biopsy results (Ref: ME-26-0119) confirming malignancy
+- Oncologist consultation notes from Dr. Chen Wei Ming
+- Proposed treatment plan documentation
+- Hospital admission records
 
-Claimant Cooperation: High - provided all requested documentation and facilitated multiple site visits
+TREATMENT PLAN COSTS:
+1. Initial diagnostics and biopsy: SGD 12,450
+2. Surgical procedure (lumpectomy): SGD 38,900
+3. Post-operative care: SGD 8,775
+4. Chemotherapy (6 cycles): SGD 89,600
+5. Radiation therapy (planned): SGD 24,800
+Total: SGD 174,525 (USD 130,977.52)
 
-Recommendation: REFER
-Reasoning: While damage is consistent with reported flood event, pre-existing maintenance issues with drainage system may affect coverage. Structural concerns in basement require engineering assessment before final settlement determination. Recommend engaging structural engineer for detailed evaluation of column damage.
+FINDINGS:
+Claim is valid under policy terms. Medical documentation supports diagnosis and necessity of treatment. All procedures fall within usual and customary rates for Singapore private healthcare facilities. Patient has completed surgical intervention and commenced chemotherapy on 2026-01-20.
+
+RECOMMENDATION:
+Approve claim amount of USD 130,977.52 less deductible of USD 250.00. Total recommended payout: USD 130,727.52
+
+Additional Notes:
+Follow-up assessment recommended after completion of chemotherapy cycle. Prognosis is favorable with 85% five-year survival rate according to treating oncologist.
+
+Wong Mei Ling
+Senior Claims Adjuster
+Singapore Branch Office
 NOTEEOF
 
 cat > "$TMPDIR/adjuster_note_009.txt" << 'NOTEEOF'
 FIELD INSPECTION REPORT
-Claim Reference: CLM-009
-Date: 15 November 2023
-Adjuster: Somchai Thongchai
-Location: Bangkok, Thailand
-Property Type: Commercial Building - 4-story retail complex
+Claim Number: CLM-009
+Date of Inspection: November 5, 2025
+Adjuster: Marcus Tan (License #SG2245)
+Location: 78 Shenton Way, Singapore 079120
+
+INCIDENT OVERVIEW:
+On October 31, 2025, at approximately 14:30, a water pipe burst on the 12th floor of the insured's commercial property, causing significant water damage to three floors below. The affected area includes tenant spaces occupied by two law firms and a financial consulting company.
 
 DAMAGE ASSESSMENT:
-Extensive water damage observed across multiple floors following severe monsoon flooding. Primary affected areas include ground floor retail spaces and basement parking facility. Ground floor shows clear water line at 1.2m height with significant damage to drywall, electrical systems, and floor coverings. Mold growth already visible on walls and wooden fixtures. Six retail units severely impacted with destroyed inventory and fixtures. Basement parking level completely flooded with standing water still present at 0.3m depth at time of inspection. Electrical distribution panels submerged during peak flooding requiring full replacement. HVAC system components in basement severely damaged. Structural assessment reveals no immediate concerns to building foundation, however water penetration through expansion joints requires remediation. External drainage system blocked with debris contributing to water ingress. Emergency response measures including water extraction and dehumidification already initiated by property management. Temporary power systems installed for basic lighting and security systems.
+- Water penetration through ceiling and walls affecting approximately 450 square meters
+- Damaged office equipment including 12 workstations
+- Compromised electrical systems requiring partial rewiring
+- Extensive damage to carpeting and wall coverings
+- Mold risk identified in drywall sections
 
-Estimated Repair Cost: USD 875,000
+COST BREAKDOWN:
+1. Water damage restoration: SGD 45,000
+2. Electrical system repairs: SGD 28,500
+3. Office equipment replacement: SGD 32,000
+4. Carpet and wall covering replacement: SGD 22,000
+5. Temporary relocation costs: SGD 10,000
+Total: SGD 137,500 (USD 102,254.50)
 
-Claimant Cooperation: Excellent - provided all requested documentation and facilitated immediate access
+EVIDENCE COLLECTED:
+- Photographic documentation of all affected areas
+- Building maintenance records showing recent pipe inspection
+- Security camera footage confirming time of incident
+- Tenant statements and damage claims
+- Professional assessment from licensed plumber (Report #PL-2025/445)
 
-RECOMMENDATION: APPROVE
-Damage consistent with reported flood event and policy coverage. All damage properly documented and mitigation efforts promptly implemented. Recommend full approval of claim with standard depreciation applications per policy terms.
+RECOMMENDATIONS:
+Claim appears valid and within policy coverage. Recommend full approval less deductible. Preventive measures suggested for remaining pipeline infrastructure to prevent future incidents.
+
+NEXT STEPS:
+1. Process claim payment
+2. Issue preventive maintenance advisory
+3. Schedule follow-up inspection after repairs
+
+Marcus Tan
+Senior Claims Adjuster
+Singapore Insurance Adjusters Pte Ltd
 NOTEEOF
 
 cat > "$TMPDIR/adjuster_note_010.txt" << 'NOTEEOF'
-Field Inspection Report
-Claim Reference: CLM-010
-Date: 15 March 2024
-Adjuster: Somchai Wattana
-Location: Bangkok, Thailand
-Property Type: Commercial Building - 4-story retail complex
+FIELD INSPECTION REPORT
+Date of Inspection: January 8, 2026
+Claim Number: CLM-010
+Adjuster: Marcus Tan (License #SG2024-789)
+Location: 123 Tanjong Pagar Road, Singapore 088456
 
-Damage Assessment:
-Conducted thorough inspection of water damage resulting from severe roof leak during recent monsoon rains. Primary affected areas span the entire top floor (4th) and significant portions of the 3rd floor. Evidence of prolonged water infiltration observed through deteriorated ceiling panels, compromised electrical systems, and extensive mold growth along western wall sections. Approximately 680 square meters of retail space impacted. Specific damages include:
-- Collapsed suspended ceiling systems in 40% of 4th floor area
-- Severe water staining and warping of drywall in 12 separate locations
-- Complete failure of electrical systems in northwest quadrant
-- Mold contamination requiring remediation in approximately 220 square meters
-- Damaged merchandise inventory in 4 retail units
-- Compromised HVAC ductwork showing rust and contamination
-- Structural assessment reveals no compromise to building integrity
-Secondary damage noted to ground floor retail units from water migration through service ducts.
+INCIDENT DETAILS:
+On January 3, 2026, at approximately 22:30 hours, a severe thunderstorm caused significant water damage to the insured's commercial property. Heavy rainfall, combined with blocked drainage systems, resulted in flooding on the ground floor retail space. Water ingress affected approximately 1,200 square feet of retail space, including inventory storage areas.
 
-Estimated Repair Cost: $285,000 USD
+OBSERVED DAMAGES:
+- Water damage to drywall and baseboards (ground floor)
+- Damaged wooden flooring and subflooring
+- Affected electrical outlets and wiring below 2 feet
+- Inventory damage: clothing merchandise and storage boxes
+- Mold growth detected on walls (readings: 85% relative humidity)
 
-Claimant Cooperation: High - Property manager provided immediate access, complete documentation, and maintenance records
+EVIDENCE COLLECTED:
+- 47 digital photographs
+- Security camera footage showing water ingress
+- Weather report from NEA confirming rainfall of 102mm
+- Moisture meter readings from affected areas
+- Original purchase receipts for damaged inventory
 
-Recommendation: APPROVE
-Damages clearly result from covered peril (storm damage to roof) with no evidence of pre-existing conditions or maintenance negligence. All damage properly documented and costs reasonable for scope of repairs needed. Recommend full approval with standard deductible application.
+COST BREAKDOWN:
+1. Water extraction and drying: $8,750
+2. Drywall replacement: $6,880
+3. Electrical repairs: $4,200
+4. Flooring replacement: $12,300
+5. Inventory losses: $7,500
+6. Mold remediation: $1,500.17
+
+Total Claimed Amount: $41,130.17
+Less Deductible: $5,000
+Net Claim Amount: $36,130.17
+
+RECOMMENDATIONS:
+Claim is valid under policy terms. Recommend full approval of net claim amount. Suggest preventive measures including drainage system upgrade to prevent future incidents.
+
+Marcus Tan
+Senior Claims Adjuster
+Singapore Claims Management Ltd.
 NOTEEOF
 
 echo "=== Uploading to s3://$BUCKET/$PREFIX/ ==="

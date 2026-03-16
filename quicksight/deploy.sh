@@ -516,23 +516,42 @@ echo "=== Step 4: Create dashboard ==="
 
 ANALYSIS_ARN="arn:aws:quicksight:${REGION}:${ACCT}:analysis/insurance-apj-analysis"
 
+echo "  Creating template from analysis..."
+aws quicksight create-template \
+  --aws-account-id "$ACCT" --region "$REGION" \
+  --template-id "insurance-apj-template" \
+  --name "APJ Insurance Claims Template" \
+  --source-entity "{
+    \"SourceAnalysis\": {
+      \"Arn\": \"${ANALYSIS_ARN}\",
+      \"DataSetReferences\": [
+        {\"DataSetPlaceholder\": \"claims\", \"DataSetArn\": \"${CLAIMS_DS_ARN}\"},
+        {\"DataSetPlaceholder\": \"apac_risk\", \"DataSetArn\": \"${RISK_DS_ARN}\"}
+      ]
+    }
+  }" 2>&1
+
+echo "  Waiting for template..."
+sleep 10
+
+TEMPLATE_ARN="arn:aws:quicksight:${REGION}:${ACCT}:template/insurance-apj-template"
+
+echo "  Creating dashboard from template..."
 aws quicksight create-dashboard \
   --aws-account-id "$ACCT" --region "$REGION" \
   --dashboard-id "insurance-apj-dashboard" \
   --name "APJ Insurance Claims Dashboard" \
-  --source-entity "$(cat <<EOJSON
-{
-  "SourceAnalysis": {
-    "Arn": "${ANALYSIS_ARN}",
-    "DataSetReferences": [
-      {"DataSetPlaceholder": "claims", "DataSetArn": "${CLAIMS_DS_ARN}"},
-      {"DataSetPlaceholder": "apac_risk", "DataSetArn": "${RISK_DS_ARN}"}
-    ]
-  }
-}
-EOJSON
-)" \
+  --source-entity "{
+    \"SourceTemplate\": {
+      \"Arn\": \"${TEMPLATE_ARN}\",
+      \"DataSetReferences\": [
+        {\"DataSetPlaceholder\": \"claims\", \"DataSetArn\": \"${CLAIMS_DS_ARN}\"},
+        {\"DataSetPlaceholder\": \"apac_risk\", \"DataSetArn\": \"${RISK_DS_ARN}\"}
+      ]
+    }
+  }" \
   --permissions "[{\"Principal\":\"${QS_USER_ARN}\",\"Actions\":[\"quicksight:DescribeDashboard\",\"quicksight:ListDashboardVersions\",\"quicksight:UpdateDashboardPermissions\",\"quicksight:QueryDashboard\",\"quicksight:UpdateDashboard\",\"quicksight:DeleteDashboard\",\"quicksight:DescribeDashboardPermissions\",\"quicksight:UpdateDashboardPublishedVersion\"]}]" \
+  --dashboard-publish-options '{"AdHocFilteringOption":{"AvailabilityStatus":"ENABLED"},"ExportToCSVOption":{"AvailabilityStatus":"ENABLED"},"SheetControlsOption":{"VisibilityState":"EXPANDED"}}' \
   2>&1 && ok "Dashboard: insurance-apj-dashboard" || fail "Dashboard creation"
 
 # ── Step 5: Create Q topic ────────────────────────────────────────────────────
