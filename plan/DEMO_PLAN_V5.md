@@ -106,7 +106,7 @@ An end-to-end insurance claims processing pipeline across **8 Asia-Pacific marke
 | 0:00–0:12 | Streamlit title | Set up the problem — thousands of claims, manual review |
 | 0:12–0:45 | Streamlit Tab 1 | Select Hong Kong claim → Bedrock evaluation → decision + reasoning in ~3s |
 | 0:45–1:10 | Streamlit Tab 3 | Policy Search — "Does home insurance cover typhoon damage?" → RAG results + AI summary |
-| 1:10–1:40 | QuickSight Q | Switch to executive view — dashboard briefly → Q: "Which country has the highest total claim amount?" |
+| 1:10–1:40 | QuickSight Q | Switch to executive view — dashboard briefly → Q: "What is the average claim amount for natural disasters by country?" |
 | 1:40–2:00 | Streamlit Tab 4 + wrap | APJ Market View → architecture summary → "Snowflake and AWS, better together" |
 
 ---
@@ -233,14 +233,14 @@ def evaluate(session, claim_id):
         result_json = json.loads(m.group()) if m else {'decision': 'REFER', 'reasoning': clean, 'risk_score': 5, 'recommended_payout': 0}
 
     decision = result_json.get('decision', 'REFER')
-    reasoning = result_json.get('reasoning', '').replace("'", "''")
+    full_json = json.dumps(result_json).replace("'", "''")
     status_map = {'APPROVE': 'Approved', 'DENY': 'Denied', 'REFER': 'Under Review'}
     new_status = status_map.get(decision, 'Under Review')
 
     session.sql(f"""
         UPDATE INSURANCE_DEMO_DB.CURATED.CLAIMS
         SET AI_DECISION = '{decision}',
-            AI_REASONING = '{reasoning}',
+            AI_REASONING = '{full_json}',
             STATUS = '{new_status}'
         WHERE CLAIM_ID = '{claim_id}'
     """).collect()
@@ -277,8 +277,8 @@ Sheet 2 — "APJ Risk & Markets":
 - Row 2: Bar chart — Disaster Exposure | Table — Country Risk Detail
 
 **Q topic test questions (run after Step 5.7):**
-1. "Which country has the highest total claim amount?"
-2. "Show claim count by policy type"
+1. "What is the average claim amount for natural disasters by country?"
+2. "Which city has the most medical claims?"
 3. "How many claims are pending?"
 
 ---
@@ -453,7 +453,7 @@ UPDATE INSURANCE_DEMO_DB.CURATED.CLAIMS SET STATUS = CASE MOD(ABS(HASH(CLAIM_ID|
 ### Amazon Bedrock Integration
 - Model ID `us.anthropic.claude-sonnet-4-5-20250929-v1:0` contains a colon — must URL-encode (`%3A`) in canonical URI for SigV4 signing
 - Use `urllib.parse.quote(model_id, safe="")` in the stored procedure
-- **Stored procedure updates 3 columns:** `AI_DECISION`, `AI_REASONING`, and `STATUS` (using `status_map = {'APPROVE':'Approved','DENY':'Denied','REFER':'Under Review'}`)
+- **Stored procedure updates 3 columns:** `AI_DECISION`, `AI_REASONING` (full JSON — the Streamlit app parses it with `json.loads()` to extract `decision`, `risk_score`, `reasoning`, `recommended_payout`), and `STATUS` (using `status_map = {'APPROVE':'Approved','DENY':'Denied','REFER':'Under Review'}`)
 - **Bedrock responses may be wrapped in markdown code fences** (`` ```json ... ``` ``). The Streamlit app MUST strip these before `json.loads()`. Use: `re.sub(r"^```(?:json)?\s*", "", result)` and `re.sub(r"\s*```$", "", result)`. As fallback, use `re.search(r'\{.*\}', result, re.DOTALL)` to extract the JSON object
 
 ### Marketplace Data
@@ -461,6 +461,53 @@ UPDATE INSURANCE_DEMO_DB.CURATED.CLAIMS SET STATUS = CASE MOD(ABS(HASH(CLAIM_ID|
 - World Bank data uses `GEO_ID` format `country/XXX` (e.g., `country/HKG`)
 - Use `ILIKE` patterns for variable names (avoid `$` in exact strings — shell interprets it)
 - Use `ROW_NUMBER()` to get latest value per country per indicator
+- **Source table:** `SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.WORLD_BANK_TIMESERIES` (columns: `GEO_ID`, `VARIABLE`, `VARIABLE_NAME`, `DATE`, `VALUE`, `UNIT`)
+- **World Bank variable names for ILIKE:**
+  - GDP per capita PPP: `'%GDP%per capita%PPP%current international%'`
+  - Insurance penetration: `'%Insurance and financial services%commercial service exports%'`
+  - Disaster displaced: `'%Internally displaced%disasters%'`
+  - Population: `'Population, total'`
+
+**Materialized table DDL — APAC_COUNTRY_RISK** (must match column names used by Streamlit app + QuickSight):
+```sql
+CREATE OR REPLACE TABLE INSURANCE_DEMO_DB.CURATED.APAC_COUNTRY_RISK AS
+WITH latest AS (
+    SELECT GEO_ID, VARIABLE_NAME, VALUE,
+           ROW_NUMBER() OVER (PARTITION BY GEO_ID, VARIABLE_NAME ORDER BY DATE DESC) AS rn
+    FROM SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.WORLD_BANK_TIMESERIES
+    WHERE GEO_ID IN ('country/HKG','country/SGP','country/JPN','country/AUS','country/THA','country/IDN','country/MYS','country/PHL')
+      AND VALUE IS NOT NULL
+)
+SELECT
+    CASE SPLIT_PART(GEO_ID,'/',2)
+        WHEN 'HKG' THEN 'Hong Kong' WHEN 'SGP' THEN 'Singapore' WHEN 'JPN' THEN 'Japan'
+        WHEN 'AUS' THEN 'Australia' WHEN 'THA' THEN 'Thailand' WHEN 'IDN' THEN 'Indonesia'
+        WHEN 'MYS' THEN 'Malaysia' WHEN 'PHL' THEN 'Philippines' END AS COUNTRY,
+    SPLIT_PART(GEO_ID,'/',2) AS COUNTRY_CODE,
+    MAX(CASE WHEN VARIABLE_NAME ILIKE '%GDP%per capita%PPP%current international%' THEN VALUE END) AS GDP_PER_CAPITA,
+    MAX(CASE WHEN VARIABLE_NAME ILIKE '%Insurance and financial services%commercial service exports%' THEN VALUE END) / 100 AS INSURANCE_PENETRATION,
+    MAX(CASE WHEN VARIABLE_NAME ILIKE '%Internally displaced%disasters%' THEN VALUE END) /
+        NULLIF(MAX(CASE WHEN VARIABLE_NAME = 'Population, total' THEN VALUE END), 0) AS NATURAL_DISASTER_EXPOSURE,
+    MAX(CASE WHEN VARIABLE_NAME = 'Population, total' THEN VALUE END) AS POPULATION,
+    MAX(CASE WHEN VARIABLE_NAME ILIKE '%Internally displaced%disasters%' THEN VALUE END) AS DISASTER_DISPLACED_PERSONS
+FROM latest WHERE rn = 1
+GROUP BY GEO_ID;
+-- Expect 8 rows. Columns: COUNTRY, COUNTRY_CODE, GDP_PER_CAPITA, INSURANCE_PENETRATION, NATURAL_DISASTER_EXPOSURE, POPULATION, DISASTER_DISPLACED_PERSONS
+```
+
+**Materialized table DDL — APAC_INSURANCE_INDICATORS** (must match column names used by Streamlit Tab 4):
+```sql
+CREATE OR REPLACE TABLE INSURANCE_DEMO_DB.CURATED.APAC_INSURANCE_INDICATORS AS
+SELECT
+    COUNTRY, COUNTRY_CODE,
+    INSURANCE_PENETRATION * 100 AS INSURANCE_PENETRATION_PCT,
+    GDP_PER_CAPITA AS GDP_PER_CAPITA_PPP,
+    COALESCE(NATURAL_DISASTER_EXPOSURE * 100, 0) AS DISASTER_EXPOSURE_PCT
+FROM INSURANCE_DEMO_DB.CURATED.APAC_COUNTRY_RISK;
+-- Expect 8 rows. Columns: COUNTRY, COUNTRY_CODE, INSURANCE_PENETRATION_PCT, GDP_PER_CAPITA_PPP, DISASTER_EXPOSURE_PCT
+```
+
+**CURATED.CLAIMS must include PREMIUM column** (from RAW_POLICIES_GEN join). The QuickSight claims dataset selects PREMIUM. Ensure the denormalized join includes: `p.PREMIUM AS PREMIUM`
 
 ### Cortex Search (Policy Search Tab)
 - Query via `SNOWFLAKE.CORTEX.SEARCH_PREVIEW()` — returns JSON with `results` array containing `@scores.cosine_similarity`, `POLICY_NUMBER`, `POLICY_TYPE`, `SEARCH_TEXT`
@@ -672,7 +719,7 @@ SELECT SNOWFLAKE.CORTEX.AI_COMPLETE('claude-3-5-sonnet', 'Say hello');
 - Switch to Tab 3 (Policy Search) and click one sample question to verify end-to-end
 
 ### 5. Demo Flow Recommendation
-1. **Start on Tab 1** — show CLM-001 (pre-evaluated) → instant AI result with risk bar and timeline
+1. **Start on Tab 1** — show CLM-001 (pre-evaluated) → instant AI result with risk bar and reasoning
 2. **Switch to a pending claim** (e.g., CLM-010) → click "Evaluate with Amazon Bedrock" → live call with timer
 3. **Show batch evaluation** — "Evaluate All Pending Claims" button → progress bar across 5 claims
 4. **Tab 3 (Policy Search)** — click a sample question → show 5 results + AI summary
@@ -701,9 +748,10 @@ aws iam delete-role --role-name snowflake-insurance-s3-role
 # AWS — SQS
 aws sqs delete-queue --queue-url https://sqs.us-west-2.amazonaws.com/$AWS_ACCOUNT_ID/sf-insurance-demo-snowpipe
 
-# AWS — QuickSight (Q topic first, then dashboard, then datasets, then data source)
+# AWS — QuickSight (Q topic first, then dashboard, then template, then analysis, then datasets, then data source)
 aws quicksight delete-topic --aws-account-id $AWS_ACCOUNT_ID --topic-id insurance-apj-q-topic
 aws quicksight delete-dashboard --aws-account-id $AWS_ACCOUNT_ID --dashboard-id insurance-apj-dashboard
+aws quicksight delete-template --aws-account-id $AWS_ACCOUNT_ID --template-id insurance-apj-template
 aws quicksight delete-analysis --aws-account-id $AWS_ACCOUNT_ID --analysis-id insurance-apj-analysis
 aws quicksight delete-data-set --aws-account-id $AWS_ACCOUNT_ID --data-set-id insurance-claims-ds
 aws quicksight delete-data-set --aws-account-id $AWS_ACCOUNT_ID --data-set-id insurance-apac-country-risk
