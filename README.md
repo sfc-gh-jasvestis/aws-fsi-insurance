@@ -108,12 +108,18 @@ bash quicksight/deploy.sh
 Full tear-down commands are in the build plan. Summary:
 
 ```bash
-# AWS resources
-aws s3 rb s3://sf-insurance-demo-apj-2026 --force
+# Set your AWS account ID first
+export AWS_ACCOUNT_ID=<your-aws-account-id>
+
+# AWS resources — S3 (must remove all object versions first if versioning enabled)
+aws s3api list-object-versions --bucket sf-insurance-demo-apj-2026 --output json \
+  | python3 -c "import sys,json; v=json.load(sys.stdin); objs=[{'Key':o['Key'],'VersionId':o['VersionId']} for o in v.get('Versions',[])+v.get('DeleteMarkers',[])]; print(json.dumps({'Objects':objs,'Quiet':True}))" \
+  | aws s3api delete-objects --bucket sf-insurance-demo-apj-2026 --delete file:///dev/stdin
+aws s3api delete-bucket --bucket sf-insurance-demo-apj-2026
 aws iam delete-role-policy --role-name snowflake-insurance-s3-role --policy-name snowflake-insurance-s3-policy
 aws iam delete-role --role-name snowflake-insurance-s3-role
 aws sqs delete-queue --queue-url https://sqs.us-west-2.amazonaws.com/$AWS_ACCOUNT_ID/sf-insurance-demo-snowpipe
-# QuickSight: topic → dashboard → analysis → datasets → data source (see plan for full commands)
+# QuickSight: topic → dashboard → template → analysis → datasets → data source (see plan for full commands)
 ```
 
 ```sql
