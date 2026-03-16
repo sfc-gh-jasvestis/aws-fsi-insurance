@@ -35,11 +35,11 @@
 ---
 
 #### SCENE 2 — The S3 Bucket (0:15–0:35)
-**Screen:** AWS Console → S3 → `sf-insurance-demo-apj`
+**Screen:** AWS Console → S3 → `sf-insurance-demo-apj-2026`
 
-> *"Let's start where the data lands. This is the S3 bucket — two folders. Claims contains 200 JSON claim files from 8 APJ countries. Adjuster notes contains 10 free-text documents written by human adjusters — medical reports, damage assessments, investigation summaries."*
+> *"Let's start where the data lands. This is the S3 bucket. Claims folder — 200 JSON files, one per claim, from 8 APJ countries. Adjuster notes — 10 free-text field inspection reports written by human adjusters. Theft investigations, medical claims reviews, typhoon damage assessments."*
 
-**Action:** Open `sf-insurance-demo-apj` bucket. Click into `claims/` — show the list of JSON files. Click one file and show a quick preview of the JSON structure (claim_id, type, amount, country). Back out. Click into `adjuster-notes/` — show the .txt files.
+**Action:** Open `sf-insurance-demo-apj-2026` bucket. Click into `claims/` — show the list of 200 JSON files. Click one file (e.g., CLM-001.json) and show a quick preview of the JSON structure (claim_id, claim_type, amount, country). Back out. Click into `adjuster-notes/` — show the 10 .txt files.
 
 > *"Every file that lands here is automatically ingested into Snowflake via Snowpipe — no batch jobs, no scheduling, no ETL code."*
 
@@ -81,17 +81,17 @@
 
 **Action:** Show the app. Scroll through the claim dropdown — note the descriptive labels showing claim type, country, and status.
 
-> *"Here's a claim we've already evaluated — a residential fire in Hong Kong. You can see the claim timeline at the top: Filed, Ingested, Enriched, Evaluated, Approved. The AI has already made its recommendation — risk score on a colour-coded bar, full reasoning the adjuster can review."*
+> *"Here's a claim we've already evaluated — a vehicle theft in Hong Kong. The AI has made its recommendation — risk score on a colour-coded bar, decision, full reasoning the adjuster can review."*
 
-**Action:** Select a **pre-evaluated** Hong Kong claim (e.g., CLM-001). Point to the timeline, the risk bar, and the previous AI result.
+**Action:** Select a **pre-evaluated** Hong Kong claim (e.g., CLM-001 — Theft, Auto). Point to the metrics (Amount, Coverage, Deductible, Status), the risk bar, and the AI result.
 
-> *"And here — World Bank market context. GDP, insurance penetration, disaster exposure. This is the data we just saw in the Snowflake table — now it's in the UI, and it's what the AI reads to calibrate its decision."*
+> *"And here — World Bank market context. GDP per capita, insurance penetration, disaster exposure. This is live data from the Snowflake Marketplace, joined to every claim, and it's what the AI reads to calibrate its risk score."*
 
-**Action:** Point to the World Bank Market Context panel.
+**Action:** Point to the World Bank Market Context panel — the GDP, Insurance Penetration, and Disaster Exposure metrics.
 
-> *"Now a brand-new claim — this one is pending."*
+> *"Now a brand-new claim — this one is still pending."*
 
-**Action:** Switch to a **pending** claim (e.g., CLM-010). Point to the timeline: only Filed → Ingested → Enriched.
+**Action:** Switch to a **pending** claim (e.g., CLM-010 — Property Damage, Commercial, Singapore).
 
 > *"I can see the exact prompt going to Bedrock."*
 
@@ -105,6 +105,10 @@
 
 **Action:** Point to before/after comparison and risk bar. Note balloons if APPROVE.
 
+> *"And if I need to process the whole queue — one click, all pending claims evaluated in batch."*
+
+**Action:** Scroll down to "Batch Evaluation". Point to the pending count and the "Evaluate All Pending Claims" button (don't click — just show it).
+
 ---
 
 #### SCENE 5 — Policy Search / RAG (1:55–2:20)
@@ -114,7 +118,7 @@
 
 **Action:** Click sample question: **"Does home insurance cover typhoon damage in Hong Kong?"**
 
-> *"Five matching policies, ranked by relevance. And an AI-generated summary grounded in the actual policy text. RAG — running entirely inside Snowflake."*
+> *"Five matching documents, ranked by relevance — coverage details, exclusions, deductibles. And an AI-generated summary grounded in the actual policy text. RAG — running entirely inside Snowflake."*
 
 **Action:** Scroll through results, pause on the AI Summary.
 
@@ -131,11 +135,11 @@
 
 > *"Two dashboard sheets — claims pipeline and APJ market risk. But the real power is QuickSight Q. The CFO doesn't write SQL — they just ask."*
 
-**Action:** Click the Q search bar. Type: **"Which country has the highest total claim amount?"** — show the auto-generated answer/chart.
+**Action:** Click the Q search bar. Type: **"What is the average claim amount for natural disasters by country?"** — show the auto-generated answer/chart.
 
-> *"Instant answer, auto-generated visualisation, from live Snowflake data."*
+> *"Instant answer, auto-generated visualisation, from live Snowflake data. A cross-dimensional question that no static dashboard can answer on the fly."*
 
-**Action:** Type one more: **"Show claim count by policy type"** — show the result.
+**Action:** Type one more: **"Which city has the most medical claims?"** — show the result.
 
 ---
 
@@ -164,7 +168,7 @@
 > End-to-end insurance claims processing with Snowflake AI + Amazon Bedrock + QuickSight Q — from raw document to AI-powered decision in seconds.
 
 **Medium (for email):**
-> This 3.5-minute demo walks through a complete insurance claims pipeline built on Snowflake and AWS, serving 8 Asia-Pacific markets. Starting with the infrastructure — an S3 bucket with 200 claim files and 10 adjuster notes, Snowpipe auto-ingestion, and a 4-schema Snowflake database enriched with World Bank Marketplace data — the demo then switches to two personas. The Claims Adjuster uses a Streamlit app inside Snowflake to evaluate claims with Amazon Bedrock (Claude Sonnet 4.5), search 100 policy documents with Cortex Search RAG, and track AI decisions with visual timelines and risk scores. The Executive uses Amazon QuickSight dashboards and QuickSight Q for natural language analytics over live Snowflake data. One governed pipeline, zero data movement.
+> This 3.5-minute demo walks through a complete insurance claims pipeline built on Snowflake and AWS, serving 8 Asia-Pacific markets. Starting with the infrastructure — an S3 bucket with 200 claim files and 10 adjuster notes, Snowpipe auto-ingestion, and a 4-schema Snowflake database enriched with World Bank Marketplace data — the demo then switches to two personas. The Claims Adjuster uses a Streamlit app inside Snowflake to evaluate claims with Amazon Bedrock (Claude Sonnet 4.5), search 100 policy documents with Cortex Search RAG, and track AI decisions with colour-coded risk scores. The Executive uses Amazon QuickSight dashboards and QuickSight Q for natural language analytics over live Snowflake data. One governed pipeline, zero data movement.
 
 **Long (for LinkedIn / blog):**
 > Insurance claims processing in Asia-Pacific presents unique challenges — diverse regulatory environments, high natural disaster exposure, and growing claim volumes across 8+ markets. In this demo, we built a complete claims processing pipeline on Snowflake and AWS and walk through every layer:
@@ -176,7 +180,7 @@
 > - External Access integration calling Amazon Bedrock via SigV4 — data never leaves the governed pipeline
 >
 > **The Claims Adjuster** uses a Streamlit app running inside Snowflake to:
-> - Review 200 claims with descriptive labels, visual timelines, and colour-coded risk scores
+> - Review 200 claims with descriptive labels and colour-coded risk scores
 > - See **World Bank market context** (GDP, insurance penetration, disaster exposure) — the same data fed to the AI
 > - Evaluate claims individually or in batch with **Amazon Bedrock (Claude Sonnet 4.5)** — with before/after comparison, elapsed time, and full reasoning
 > - Search 100 policy documents using **Snowflake Cortex Search** — semantic RAG with AI-generated summaries
@@ -197,12 +201,12 @@
 4. **Snowsight:** Have INSURANCE_DEMO_DB expanded in the object browser. Pre-navigate to RAW schema
 5. **Pace:** Don't rush the S3 walkthrough (Scene 2) or Bedrock evaluation (Scene 4) — showing real infrastructure builds credibility, showing the AI wait builds anticipation
 6. **Cursor:** Use a large, visible cursor. Hover over column names in Snowsight and key numbers in the app
-7. **Claim choice:** Pre-evaluate CLM-001/002/003 before recording (see Demo Day Checklist in DEMO_PLAN_V5.md). Show one pre-evaluated claim for instant results, then switch to a pending claim for the live wow moment
+7. **Claim choice:** Pre-evaluate CLM-001 and CLM-003 before recording — use the "Evaluate with Amazon Bedrock" button in the app. This gives you one Theft (Auto) and one Natural Disaster (Home) with AI results to show. Then switch to a pending claim (e.g., CLM-010 — Property Damage, Commercial, Singapore) for the live evaluation wow moment
 8. **S3 preview:** Click into one JSON claim file in S3 to show the raw structure — this grounds the audience in "real data"
 9. **Snowsight columns:** When showing the CLAIMS table, point specifically to the World Bank enrichment columns and the AI_DECISION/AI_REASONING columns — these are the story arc
 10. **Bedrock prompt:** Briefly expand "View Bedrock Prompt" to show transparency — don't linger, just flash it
-11. **Batch evaluation:** If you have extra time, show the "Evaluate All Pending Claims" button — the progress bar across 5 claims is a strong visual
-12. **Q questions:** Test your exact questions beforehand — Q can be sensitive to phrasing. Pre-test 3–4 questions and use the ones that produce the cleanest charts
+11. **Batch evaluation:** The batch section shows all pending claims (not capped). You can mention it during Scene 4 but don't click it during recording — it will take time to evaluate all pending claims
+12. **Q questions:** Test your exact questions beforehand — Q can be sensitive to phrasing. Pre-test 3–4 questions and use the ones that produce the cleanest charts. Recommended questions that go beyond what the static dashboard already shows: "What is the average claim amount for natural disasters by country?", "Which city has the most medical claims?", "What percentage of claims in Japan are medical?", "Show average premium vs average claim amount by country"
 13. **Audio:** Record voiceover separately for clean audio, then sync. Or use a good USB mic
 14. **Transitions:** Cut (don't scroll) between AWS Console, Snowsight, Streamlit, and QuickSight — keeps the pace tight
 15. **Pre-warm:** Run the warm-up queries from the Demo Day Checklist 10 minutes before recording to avoid cold-start delays

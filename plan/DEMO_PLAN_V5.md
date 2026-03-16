@@ -289,7 +289,7 @@ Sheet 2 — "APJ Risk & Markets":
 
 | Resource | Name/ID | Type |
 |---|---|---|
-| S3 Bucket | `sf-insurance-demo-apj` | S3 (us-west-2), versioned |
+| S3 Bucket | `sf-insurance-demo-apj-2026` | S3 (us-west-2), versioned |
 | IAM Role | `snowflake-insurance-s3-role` | IAM Role + S3 read policy |
 | SQS Queue | `sf-insurance-demo-snowpipe` | SQS Standard |
 | QuickSight Data Source | `insurance-snowflake-ds-v3` | Snowflake connector |
@@ -516,7 +516,7 @@ Each phase has a validation gate. **Do not proceed to the next phase until the g
 ### Gate 1 — After Phase 1 (AWS)
 ```bash
 # All 3 must pass
-aws s3api head-bucket --bucket sf-insurance-demo-apj && echo "S3: OK"
+aws s3api head-bucket --bucket sf-insurance-demo-apj-2026 && echo "S3: OK"
 aws iam get-role --role-name snowflake-insurance-s3-role --query 'Role.RoleName' --output text && echo "IAM: OK"
 aws sqs get-queue-url --queue-name sf-insurance-demo-snowpipe --region us-west-2 && echo "SQS: OK"
 ```
@@ -689,10 +689,10 @@ SELECT SNOWFLAKE.CORTEX.AI_COMPLETE('claude-3-5-sonnet', 'Say hello');
 export AWS_ACCOUNT_ID=<your-aws-account-id>
 
 # AWS — S3 (must remove all object versions first if versioning enabled)
-aws s3api list-object-versions --bucket sf-insurance-demo-apj --output json \
+aws s3api list-object-versions --bucket sf-insurance-demo-apj-2026 --output json \
   | python3 -c "import sys,json; v=json.load(sys.stdin); objs=[{'Key':o['Key'],'VersionId':o['VersionId']} for o in v.get('Versions',[])+v.get('DeleteMarkers',[])]; print(json.dumps({'Objects':objs,'Quiet':True}))" \
-  | aws s3api delete-objects --bucket sf-insurance-demo-apj --delete file:///dev/stdin
-aws s3api delete-bucket --bucket sf-insurance-demo-apj
+  | aws s3api delete-objects --bucket sf-insurance-demo-apj-2026 --delete file:///dev/stdin
+aws s3api delete-bucket --bucket sf-insurance-demo-apj-2026
 
 # AWS — IAM
 aws iam delete-role-policy --role-name snowflake-insurance-s3-role --policy-name snowflake-insurance-s3-policy

@@ -42,7 +42,7 @@ Adjuster Notes ──► Amazon S3 ──► Snowpipe ──► Snowflake
 ```
 ├── plan/
 │   ├── DEMO_PLAN_V5.md           # Full build plan (phases, SQL, validation gates)
-│   └── DEMO_SCRIPT_2MIN.md       # 2-minute video demo narration script
+│   └── DEMO_SCRIPT.md             # 3.5-minute video demo narration script
 ├── quicksight/
 │   └── deploy.sh                 # QuickSight datasets, analysis, dashboard, Q topic
 ├── scripts/
@@ -109,7 +109,7 @@ Full tear-down commands are in the build plan. Summary:
 
 ```bash
 # AWS resources
-aws s3 rb s3://sf-insurance-demo-apj --force
+aws s3 rb s3://sf-insurance-demo-apj-2026 --force
 aws iam delete-role-policy --role-name snowflake-insurance-s3-role --policy-name snowflake-insurance-s3-policy
 aws iam delete-role --role-name snowflake-insurance-s3-role
 aws sqs delete-queue --queue-url https://sqs.us-west-2.amazonaws.com/$AWS_ACCOUNT_ID/sf-insurance-demo-snowpipe
