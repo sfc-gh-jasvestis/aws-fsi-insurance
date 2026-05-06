@@ -512,7 +512,7 @@ with tab3:
                         safe_ctx = context.replace("'", "''").replace("\\", "\\\\")
                         safe_query = query.replace("'", "''")
                         summary = session.sql(f"""
-                            SELECT SNOWFLAKE.CORTEX.AI_COMPLETE('claude-3-5-sonnet',
+                            SELECT SNOWFLAKE.CORTEX.AI_COMPLETE('claude-sonnet-4-5',
                                 'You are an insurance policy expert. Answer the question based ONLY on the {len(hits)} policy documents below.
                                 Each document is labelled with its document ID (e.g. DOC-024) and policy type. Reference documents by their ID and type.
                                 Be specific about coverage details, deductibles, and exclusions mentioned in the text.
