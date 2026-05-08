@@ -2,22 +2,23 @@
 
 End-to-end insurance claims processing pipeline across **8 Asia-Pacific markets** using Snowflake and AWS — from raw document to AI-powered decision in seconds.
 
+## Architecture
+
+An APJ insurance claims and underwriting pipeline built on **Snowflake** (Snowpipe, Dynamic Tables, Cortex AI_COMPLETE, Cortex Search) and **AWS** (S3, Bedrock Claude, QuickSight + Amazon Q). Adjuster notes auto-ingest from S3; Cortex extracts structured fields; Bedrock joins with World Bank market data for the underwriting decision.
+
+```mermaid
+flowchart LR
+    S3[S3 adjuster notes + claim docs] --> SP[Snowpipe]
+    SP --> SF[Snowflake Claims RAW + CURATED]
+    SF --> CC[Cortex AI_COMPLETE document extraction]
+    SF --> CSearch[Cortex Search policy RAG]
+    SF --> BR[Amazon Bedrock Claude]
+    WB[World Bank Marketplace GDP + disaster exposure] --> BR
+    BR --> DEC[Underwriting decision]
+    SF --> ST[Streamlit Adjuster UI]
+    SF --> QS[QuickSight + Amazon Q]
 ```
-Adjuster Notes ──► Amazon S3 ──► Snowpipe ──► Snowflake
-                                                  │
-                     ┌────────────────────────────┤
-                     ▼                            ▼
-              Cortex AI_COMPLETE           Cortex Search
-              (document extraction)        (policy RAG)
-                     │                            │
-                     ▼                            ▼
-              Amazon Bedrock ◄──── World Bank Marketplace
-              (Claude Sonnet 4.5)   (GDP, disaster exposure)
-                     │
-                     ▼
-              Streamlit in Snowflake ──► Amazon QuickSight + Q
-              (adjuster UI)              (executive dashboards + NLP)
-```
+
 
 ## What It Does
 
