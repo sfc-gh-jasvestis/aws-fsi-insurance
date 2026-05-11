@@ -20,6 +20,27 @@ flowchart LR
 ```
 
 
+## Snowflake Capabilities
+
+| Capability | Implementation |
+|-----------|---------------|
+| Dynamic Tables | RAW_CLAIMS → CURATED.CLAIMS enrichment pipeline |
+| Cortex AI | AI_COMPLETE for document extraction and claim evaluation |
+| Cortex Search | 100 policy documents indexed for RAG |
+| Cortex Agent | ClaimsAnalyst + PolicySearch tools |
+| Semantic View | Structured analytics over claims, policies, market risk |
+| Streamlit | 4-tab adjuster UI with claim evaluation |
+| Marketplace | World Bank GDP + disaster exposure (zero ETL) |
+
+## AWS Services
+
+| Service | Role in Demo |
+|---------|-------------|
+| Amazon S3 | Adjuster notes and claim document ingestion |
+| Amazon Bedrock | Claude-powered underwriting decision with market context |
+| Amazon QuickSight | Executive claims and underwriting dashboard |
+| Amazon Q | Natural language analytics for CFO |
+
 ## What It Does
 
 | Capability | Technology |
@@ -41,15 +62,19 @@ flowchart LR
 ## Repo Structure
 
 ```
-├── plan/
-│   ├── DEMO_PLAN_V5.md           # Full build plan (phases, SQL, validation gates)
-│   └── DEMO_SCRIPT.md             # 3.5-minute video demo narration script
+├── demo/
+│   ├── DEMO_PLAN_V5.md               # Full build plan (phases, SQL, validation gates)
+│   └── demo_script.md                # 3.5-minute video demo narration script
 ├── quicksight/
-│   └── deploy.sh                 # QuickSight datasets, analysis, dashboard, Q topic
+│   └── deploy.sh                     # QuickSight datasets, analysis, dashboard, Q topic
 ├── scripts/
-│   └── adjuster_notes.sh         # 10 adjuster notes (embedded) → S3 upload
-├── streamlit_app_v5.py           # Streamlit UI (4 tabs)
-├── snowflake.yml                 # Streamlit deploy config
+│   └── adjuster_notes.sh             # 10 adjuster notes (embedded) → S3 upload
+├── snowflake/                        # SQL scripts (setup is in demo/DEMO_PLAN_V5.md)
+├── streamlit/
+│   ├── streamlit_app.py              # Streamlit UI (4 tabs)
+│   ├── snowflake.yml                 # Streamlit deploy config
+│   └── deploy/
+│       └── streamlit_app.py          # AWS-free version for SiS deploy
 └── .gitignore
 ```
 
