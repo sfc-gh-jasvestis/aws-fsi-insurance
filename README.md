@@ -97,6 +97,8 @@ Industry research and Snowflake customer outcomes:
 - **Adjuster productivity** improves 40-60% with AI document extraction -- Accenture Insurance
 - **Fraud detection accuracy**: 90%+ with AI vs 50% manual review -- Industry benchmark
 
+- **Emirates Insurance** processes claims 30-40% faster and automated 380 hours of work in 3 months using Snowflake AI -- snowflake.com/customers
+
 ## Key Demo Numbers
 
 - **200 claims** across 8 Asia-Pacific markets
