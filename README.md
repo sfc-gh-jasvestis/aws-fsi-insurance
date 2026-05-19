@@ -89,6 +89,14 @@ Follow the build plan in `demo/DEMO_PLAN_V5.md` but skip AWS phases. Deploy the 
 ### Full AWS + Snowflake
 Follow all 5 phases in the build plan, deploy the main Streamlit app from `streamlit/`, then run `bash quicksight/deploy.sh`.
 
+## Business Impact
+
+Industry research and Snowflake customer outcomes:
+- **AI-assisted claims processing** reduces cost from $15-30/claim (manual) to $3-5/claim -- McKinsey Insurance
+- **Emirates Insurance** (Snowflake customer): 30-40% faster motor claims, 380 hours automated in 3 months -- snowflake.com/customers
+- **Adjuster productivity** improves 40-60% with AI document extraction -- Accenture Insurance
+- **Fraud detection accuracy**: 90%+ with AI vs 50% manual review -- Industry benchmark
+
 ## Key Demo Numbers
 
 - **200 claims** across 8 Asia-Pacific markets
@@ -99,3 +107,5 @@ Follow all 5 phases in the build plan, deploy the main Streamlit app from `strea
 ## License
 
 Apache 2.0 — See [LICENSE](LICENSE) for details.
+
+This is a personal demo project and is not an official Snowflake offering. It comes with no support or warranty. Industry metrics cited are from publicly available third-party research and Snowflake customer stories; they represent reported outcomes and are not guarantees of results.
