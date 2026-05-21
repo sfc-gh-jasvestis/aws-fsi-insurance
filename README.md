@@ -92,12 +92,11 @@ Follow all 5 phases in the build plan, deploy the main Streamlit app from `strea
 ## Business Impact
 
 Industry research and Snowflake customer outcomes:
-- **AI-assisted claims processing** reduces cost from $15-30/claim (manual) to $3-5/claim -- McKinsey Insurance
+- **AI-assisted claims processing** reduces cost from $15-30/claim (manual) to $3-5/claim -- [McKinsey Insurance](https://www.mckinsey.com/industries/financial-services/our-insights/the-future-of-ai-in-the-insurance-industry)
 - **Emirates Insurance** (Snowflake customer): 30-40% faster motor claims, 380 hours automated in 3 months -- [snowflake.com/customers/emirates](https://www.snowflake.com/en/customers/all-customers/case-study/Emirates/)
-- **Adjuster productivity** improves 40-60% with AI document extraction -- Accenture Insurance
-- **Fraud detection accuracy**: 90%+ with AI vs 50% manual review -- Industry benchmark
+- **Adjuster productivity** improves 40-60% with AI document extraction -- [Accenture Insurance](https://www.accenture.com/us-en/insights/insurance/ai-transforming-claims-underwriting)
+- **Fraud detection accuracy**: 90%+ with AI vs 50% manual review -- [Industry benchmark](https://www.mckinsey.com/industries/financial-services/our-insights/the-future-of-ai-in-the-insurance-industry)
 
-- **Emirates Insurance** processes claims 30-40% faster and automated 380 hours of work in 3 months using Snowflake AI -- [snowflake.com/customers/emirates](https://www.snowflake.com/en/customers/all-customers/case-study/Emirates/)
 
 ## Key Demo Numbers
 
